@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Poker HEAD50 </title>
+<title>Poker HEAD50</title>
 
 <style>
 body {
@@ -11,27 +11,83 @@ body {
     color: #fff;
     text-align: center;
 }
+
 .box {
-    margin-top: 50px;
+    margin-top: 30px;
 }
+
 input {
-    padding: 10px;
-    margin: 5px;
-    font-size: 18px;
-    width: 140px;
+    padding: 6px;
+    font-size: 14px;
+    width: 70px;
     text-align: center;
 }
+
 button {
-    padding: 10px 20px;
-    font-size: 18px;
+    padding: 6px 10px;
+    font-size: 13px;
     cursor: pointer;
+    border-radius: 6px;
+    border: none;
 }
+
+/* 🔥 Grid หลัก */
+#playerInputs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* PC = 5 ช่อง */
+    gap: 10px;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+    #playerInputs {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Mobile */
+@media (max-width: 500px) {
+    #playerInputs {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 🔥 Card Player */
+.player {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    transition: 0.2s;
+}
+
+.player:hover {
+    transform: scale(1.05);
+    background: #222;
+}
+
+/* Blind */
+.blind-group {
+    margin-top: 5px;
+}
+
+.blind-btn {
+    background: #333;
+    color: #fff;
+    margin: 2px;
+}
+
+.blind-btn.active {
+    background: #00c853;
+    color: #000;
+    font-weight: bold;
+}
+
 .result {
     margin-top: 30px;
-    font-size: 22px;
-}
-.player {
-    margin: 5px;
+    font-size: 18px;
 }
 </style>
 
@@ -47,7 +103,6 @@ button {
         <input type="number" id="players" value="7" onchange="generatePlayers()">
     </div>
 
-    <!-- 🔥 สร้าง player อัตโนมัติ -->
     <div id="playerInputs"></div>
 
     <br>
@@ -58,7 +113,17 @@ button {
 
 <script>
 
-// 🔥 สร้าง input ตามจำนวนผู้เล่น
+// 🔥 เลือก Blind
+function setBlind(player, value) {
+    document.getElementById("blind" + player).value = value;
+
+    let btns = document.querySelectorAll(`#p${player} .blind-btn`);
+    btns.forEach(b => b.classList.remove("active"));
+
+    btns[value].classList.add("active");
+}
+
+// 🔥 สร้าง Player
 function generatePlayers() {
     let players = parseInt(document.getElementById("players").value);
     let container = document.getElementById("playerInputs");
@@ -67,81 +132,96 @@ function generatePlayers() {
 
     for (let i = 1; i <= players; i++) {
         container.innerHTML += `
-            <div class="player">
-                👤 Player ${i} 🔫 Kill:
-                <span>
-                    <input type="number" id="kill${i}" value="0">
-                </span>
+            <div class="player" id="p${i}">
+                
+                <div><b>👤 P${i}</b></div>
+
+                <div style="margin-top:5px;">
+                    🔫 <input type="number" id="kill${i}" value="0">
+                </div>
+
+                <div class="blind-group">
+                    <button class="blind-btn active" onclick="setBlind(${i},0)">0</button>
+                    <button class="blind-btn" onclick="setBlind(${i},1)">1</button>
+                    <button class="blind-btn" onclick="setBlind(${i},2)">2</button>
+                    <button class="blind-btn" onclick="setBlind(${i},3)">3</button>
+                </div>
+
+                <input type="hidden" id="blind${i}" value="0">
             </div>
         `;
     }
 }
 
+// 🔥 คำนวณ
 function calculate() {
     let players = parseInt(document.getElementById("players").value);
 
-    let prizePool = players * 200;
-    let bountyPool = players * 50;
-    let dealer = players * 20;
+    let prizePool = 0;
+    let bountyPool = 0;
+    let dealer = 0;
 
     let kills = [];
-    let totalKills = 0;
+    let bountyList = [];
 
     for (let i = 1; i <= players; i++) {
+
         let k = parseInt(document.getElementById("kill" + i).value) || 0;
+        let blindCount = parseInt(document.getElementById("blind" + i).value) || 0;
+
+        prizePool += 200;
+        bountyPool += 50;
+        dealer += 20;
+
+        prizePool += blindCount * 200;
+        bountyPool += blindCount * 50;
+
         kills.push(k);
-        totalKills += k;
+        bountyList.push(k * 50);
     }
 
     let firstPrize = Math.ceil(prizePool * 0.7);
     let secondPrize = prizePool - firstPrize;
 
-    let bountyList = [];
-
-    for (let i = 0; i < players; i++) {
-        bountyList[i] = kills[i] * 50;
-    }
-
-    let bounty1 = bountyList[0];
-    let bounty2 = bountyList[1];
+    let bounty1 = bountyList[0] || 0;
+    let bounty2 = bountyList[1] || 0;
 
     let total1 = Math.ceil(firstPrize + bounty1);
     let total2 = Math.ceil(secondPrize + bounty2);
 
-    // คำนวนค่าหัวตัวเอง (top1)
-    let headtop1 = 50; // ค่าหัว top 1
-    let total1head = Math.ceil(headtop1);
+    let headtop1 = 50;
 
-    // ✅ รวมค่าหัวที่แจกไป (รวม top1 ด้วย)
     let bountyPaid = bountyList.reduce((a,b)=>a+b,0) + headtop1;
-
-    // ✅ ค่าหัวที่เหลือ
     let bountyLeft = bountyPool - bountyPaid;
     if (bountyLeft < 0) bountyLeft = 0;
 
-    let html = `
-        💰 ค่าทัวร์ ทั้งหมด: ${prizePool} บาท <br>
-        🧑‍💼 Dealer ได้รับ: ${dealer} บาท <br><br><br>
-        🎯 ค่าหัวทั้งหมด (รวม): ${bountyPool} บาท <br>
-        🎯 รวมค่าหัวที่ 1 แล้ว: ${bountyPaid} บาท <br>
-        🎯 เหลือ: ${bountyLeft} บาท <br><br>
+	let html = `
+		💰 ค่าทัวร์: ${prizePool} บาท <br>
+		🧑‍💼 Dealer: ${dealer} บาท <br><br>
 
-        🥇 ที่ 1 ได้:<br>
-        เงินรางวัล: ${firstPrize} บาท<br>
-        ค่าหัว: ${bounty1} บาท<br>
-        ค่าหัวตัวเอง (ที่1): ${total1head} บาท<br>
-        👉 รวม: ${total1 + headtop1 } บาท<br><br>
+		🎯 ค่าหัวทั้งหมด: ${bountyPool} บาท <br>
+		🎯 แจกไป: ${bountyPaid} บาท <br>
+		🎯 เหลือ: ${bountyLeft} บาท <br><br>
 
-        🥈 ที่ 2 ได้:<br>
-        เงินรางวัล: ${secondPrize} บาท<br>
-        ค่าหัว: ${bounty2} บาท<br>
-        👉 รวม: ${total2} บาท<br><br>
+		🥇 <b>ที่ 1</b><br>
+		เงินรางวัล: ${firstPrize} บาท<br>
+		ค่าหัวตัวเอง: +${headtop1} บาท<br>
+		ค่าหัวที่ฆ่าคนอื่น: +${bounty1} บาท<br>
+		👉 <b>รวมทั้งหมด: ${firstPrize + headtop1 + bounty1} บาท</b><br><br>
 
-        📊 รายละเอียดทุกคน:<br>
-    `;
+		🥈 <b>ที่ 2</b><br>
+		เงินรางวัล: ${secondPrize} บาท<br>
+		ค่าหัวที่ฆ่าคนอื่น: +${bounty2} บาท<br>
+		👉 <b>รวมทั้งหมด: ${secondPrize + bounty2} บาท</b><br><br>
 
-    for (let i = 0; i < players; i++) {
-        html += `Player ${i+1} ได้ค่าหัว: ${bountyList[i]} บาท<br>`;
+		📊 รายละเอียด:<br>
+	`;
+
+    for (let i = 1; i <= players; i++) {
+        let blindCount = parseInt(document.getElementById("blind" + i).value) || 0;
+        let pay = 270 + (blindCount * 250);
+
+        html += `Player ${i} | จ่าย: ${pay} | Kill: ${kills[i-1]} | Blind: ${blindCount}<br>`;
     }
 
     document.getElementById("output").innerHTML = html;
