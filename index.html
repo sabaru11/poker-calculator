@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Poker HEAD50 </title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0d0d0d;
+    color: #fff;
+    text-align: center;
+}
+.box {
+    margin-top: 50px;
+}
+input {
+    padding: 10px;
+    margin: 5px;
+    font-size: 18px;
+    width: 140px;
+    text-align: center;
+}
+button {
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+}
+.result {
+    margin-top: 30px;
+    font-size: 22px;
+}
+.player {
+    margin: 5px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+    <h1>🎲 Poker HEAD 50</h1>
+
+    <div>
+        👥 จำนวนผู้เล่น <br>
+        <input type="number" id="players" value="7" onchange="generatePlayers()">
+    </div>
+
+    <!-- 🔥 สร้าง player อัตโนมัติ -->
+    <div id="playerInputs"></div>
+
+    <br>
+    <button onclick="calculate()">คำนวณ</button>
+
+    <div class="result" id="output"></div>
+</div>
+
+<script>
+
+// 🔥 สร้าง input ตามจำนวนผู้เล่น
+function generatePlayers() {
+    let players = parseInt(document.getElementById("players").value);
+    let container = document.getElementById("playerInputs");
+
+    container.innerHTML = "";
+
+    for (let i = 1; i <= players; i++) {
+        container.innerHTML += `
+            <div class="player">
+                👤 Player ${i} 🔫 Kill:
+                <span>
+                    <input type="number" id="kill${i}" value="0">
+                </span>
+            </div>
+        `;
+    }
+}
+
+function calculate() {
+    let players = parseInt(document.getElementById("players").value);
+
+    let prizePool = players * 200;
+    let bountyPool = players * 50;
+    let dealer = players * 20;
+
+    let kills = [];
+    let totalKills = 0;
+
+    for (let i = 1; i <= players; i++) {
+        let k = parseInt(document.getElementById("kill" + i).value) || 0;
+        kills.push(k);
+        totalKills += k;
+    }
+
+    let firstPrize = Math.ceil(prizePool * 0.7);
+    let secondPrize = prizePool - firstPrize;
+
+    let bountyList = [];
+
+    for (let i = 0; i < players; i++) {
+        bountyList[i] = kills[i] * 50;
+    }
+
+    let bounty1 = bountyList[0];
+    let bounty2 = bountyList[1];
+
+    let total1 = Math.ceil(firstPrize + bounty1);
+    let total2 = Math.ceil(secondPrize + bounty2);
+
+    // คำนวนค่าหัวตัวเอง (top1)
+    let headtop1 = 50; // ค่าหัว top 1
+    let total1head = Math.ceil(headtop1);
+
+    // ✅ รวมค่าหัวที่แจกไป (รวม top1 ด้วย)
+    let bountyPaid = bountyList.reduce((a,b)=>a+b,0) + headtop1;
+
+    // ✅ ค่าหัวที่เหลือ
+    let bountyLeft = bountyPool - bountyPaid;
+    if (bountyLeft < 0) bountyLeft = 0;
+
+    let html = `
+        💰 ค่าทัวร์ ทั้งหมด: ${prizePool} บาท <br>
+        🧑‍💼 Dealer ได้รับ: ${dealer} บาท <br><br><br>
+        🎯 ค่าหัวทั้งหมด (รวม): ${bountyPool} บาท <br>
+        🎯 รวมค่าหัวที่ 1 แล้ว: ${bountyPaid} บาท <br>
+        🎯 เหลือ: ${bountyLeft} บาท <br><br>
+
+        🥇 ที่ 1 ได้:<br>
+        เงินรางวัล: ${firstPrize} บาท<br>
+        ค่าหัว: ${bounty1} บาท<br>
+        ค่าหัวตัวเอง (ที่1): ${total1head} บาท<br>
+        👉 รวม: ${total1 + headtop1 } บาท<br><br>
+
+        🥈 ที่ 2 ได้:<br>
+        เงินรางวัล: ${secondPrize} บาท<br>
+        ค่าหัว: ${bounty2} บาท<br>
+        👉 รวม: ${total2} บาท<br><br>
+
+        📊 รายละเอียดทุกคน:<br>
+    `;
+
+    for (let i = 0; i < players; i++) {
+        html += `Player ${i+1} ได้ค่าหัว: ${bountyList[i]} บาท<br>`;
+    }
+
+    document.getElementById("output").innerHTML = html;
+}
+
+// โหลดครั้งแรก
+generatePlayers();
+
+</script>
+
+</body>
+</html>
