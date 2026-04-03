@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Poker HEAD50</title>
+<title>50 Poker || 03/04/69 TC </title>
 
 <style>
 body {
@@ -149,7 +149,6 @@ function calculate() {
     let kills = [];
 
     let prizePool = 0;
-    let bountyPool = 0;
     let dealer = 0;
 
     for (let i=1;i<=n;i++) {
@@ -166,7 +165,6 @@ function calculate() {
         kills.push(k);
 
         prizePool += 200 + (b * 200);
-        bountyPool += 50 + (b * 50);
         dealer += 20;
     }
 
@@ -177,26 +175,26 @@ function calculate() {
 
     let first = Math.ceil(prizePool * 0.7);
     let second = prizePool - first;
-
     let head = 50;
 
     let html = `
-    🥇 <b>ที่ 1 (${names[p1-1]})</b><br>
-    👉 รวม: ${first + head + (kills[p1-1]*50)} บาท<br><br>
+    <h3>🏆 สรุปผล</h3>
 
-    🥈 <b>ที่ 2 (${names[p2-1]})</b><br>
-    👉 รวม: ${second + (kills[p2-1]*50)} บาท<br><br>
+    🥇 <b>${names[p1-1]}</b> = ${first + head + (kills[p1-1]*50)} บาท<br>
+    🥈 <b>${names[p2-1]}</b> = ${second + (kills[p2-1]*50)} บาท<br><br>
 
     🧑‍💼 Dealer: ${dealer} บาท<br><br>
 
-    📊 <b>รายละเอียด:</b><br>
-    <table style="margin:auto; border-collapse: collapse;">
-    <tr>
-        <th style="padding:5px 10px;">Player</th>
-        <th style="padding:5px 10px;">จ่าย</th>
-        <th style="padding:5px 10px;">Kill</th>
-        <th style="padding:5px 10px;">Blind</th>
-        <th style="padding:5px 10px;">กำไร</th>
+    <h3>📊 ตารางคะแนน</h3>
+
+    <table style="margin:auto; border-collapse: collapse; min-width: 700px;">
+    <tr style="background:#222;">
+        <th style="padding:10px;">Player</th>
+        <th>จ่าย</th>
+        <th>💀 Kill</th>
+        <th>Blind</th>
+        <th>💰 ผลรวม</th>
+        <th>📈 ยอดสุทธิ</th>
     </tr>
     `;
 
@@ -205,26 +203,47 @@ function calculate() {
         let blindCount = +document.getElementById("blind" + i).value || 0;
         let pay = 270 + (blindCount * 250);
 
-        // 💰 ได้จาก kill ทุกคน
-        let earn = (kills[i-1] || 0) * 50;
+        let killMoney = (kills[i-1] || 0) * 50;
+        let earn = killMoney;
 
-        // 🏆 เพิ่มเงินรางวัล
+        let badge = "";
+
         if (i === p1) {
             earn += first + head;
+            badge = " 🥇";
         } 
         else if (i === p2) {
             earn += second;
+            badge = " 🥈";
         }
 
         let profit = earn - pay;
 
         html += `
-        <tr>
-            <td style="padding:5px 10px;">${names[i-1]}</td>
-            <td style="padding:5px 10px;">${pay}</td>
-            <td style="padding:5px 10px;">${kills[i-1]}</td>
-            <td style="padding:5px 10px;">${blindCount}</td>
-            <td style="padding:5px 10px; color:${profit >= 0 ? '#00e676' : '#ff5252'}">
+        <tr style="background:${i%2==0 ? '#111' : '#1a1a1a'};">
+            <td style="padding:10px;">${names[i-1]}${badge}</td>
+
+            <td>${pay}</td>
+
+            <td>
+                ${kills[i-1]} 
+                <span style="color:#00e676;">(+${killMoney})</span>
+            </td>
+
+            <td>${blindCount}</td>
+
+            <td style="color:#03a9f4;">
+                ${earn}
+                <div style="font-size:12px; color:#aaa; text-align:left;">
+                    + Kill: ${killMoney}<br>
+                    ${i === p1 ? `+ Rank1: ${first}<br>` : ""}
+                    ${i === p2 ? `+ Rank2: ${second}<br>` : ""}
+                    ${i === p1 ? `+ Head Me: ${head}<br>` : ""}
+                    - Buy-in: ${pay}
+                </div>
+            </td>
+
+            <td style="font-weight:bold; color:${profit >= 0 ? '#00e676' : '#ff5252'}">
                 ${profit >= 0 ? '+' : ''}${profit}
             </td>
         </tr>
