@@ -151,6 +151,10 @@ function calculate() {
 
     let prizePool = 0;
 
+    let tableFee = 0;
+    let bountyTotal = 0;
+    let dealerTotal = 0;
+
     for (let i=1;i<=n;i++) {
 
         let name = document.getElementById("name"+i).value || ("P"+i);
@@ -165,6 +169,15 @@ function calculate() {
         kills.push(k);
 
         prizePool += 200 + (b * 200);
+
+        // 💰 ค่าโต๊ะ
+        tableFee += 200 + (b * 200);
+
+        // 🎯 ค่าหัว
+        bountyTotal += 50 + (b * 50);
+
+        // 🎲 ค่า dealer (ไม่นับ buy-in)
+        dealerTotal += 20;
     }
 
     if (!p1 || !p2) {
@@ -187,8 +200,9 @@ function calculate() {
         <th>💰 Bounty</th>
         <th>Blind</th>
         <th>จ่าย</th>
-        <th>ได้</th>
-        <th>สุทธิ</th>
+        <th>คำนวน</th>
+        <th>รายได้</th>
+        <th>ยอดสุทธิ</th>
     </tr>
     `;
 
@@ -223,7 +237,18 @@ function calculate() {
             <td>${bounty}</td>
             <td>${blindCount}</td>
             <td>${pay}</td>
-            <td>${earn}</td>
+
+            <td style="padding: 10px;">
+                <div style="font-size:12px; color:#aaa; text-align:left;">
+                ${i === p1 ? `<span style="color:gold;">+ Rank1: ${first}</span><br>` : ""}
+                ${i === p2 ? `<span style="color:cyan;">+ Rank2: ${second}</span><br>` : ""}
+                + Kill: ${killMoney}<br>
+                ${i === p1 ? `+ Head Me: ${head}<br>` : ""}
+                - StartBuy/Buy-in: ${pay}
+                </div>
+            </td>
+            
+            <td style="color:#03a9f4;">${earn}</td>
             <td style="color:${profit>=0 ? '#00e676' : '#ff5252'}">
                 ${profit>=0?'+':''}${profit}
             </td>
@@ -231,7 +256,21 @@ function calculate() {
         `;
     }
 
+    html += `
+    <div style="">
+        💰 ค่าโต๊ะรวม: ${tableFee}<br>
+        🎯 ค่าหัวรวม: ${bountyTotal}<br>
+        🔥 รวมทั้งหมด: ${tableFee + bountyTotal} (โต๊ะ+ค่าหัว) <br><br>
+
+        🎲 ค่า Dealer: ${dealerTotal}<br>
+        <br>
+        <br>
+        <br>
+    </div>
+    `;
+
     html += `</table>`;
+    
 
     document.getElementById("output").innerHTML = html;
 }
