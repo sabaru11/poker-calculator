@@ -93,6 +93,7 @@ button {
     <div id="playerInputs"></div>
 
     <button onclick="calculate()">คำนวณ</button>
+    <button onclick="saveData()">💾 Save</button>
 
     <div class="result" id="output"></div>
 </div>
@@ -149,7 +150,6 @@ function calculate() {
     let kills = [];
 
     let prizePool = 0;
-    let dealer = 0;
 
     for (let i=1;i<=n;i++) {
 
@@ -165,7 +165,6 @@ function calculate() {
         kills.push(k);
 
         prizePool += 200 + (b * 200);
-        dealer += 20;
     }
 
     if (!p1 || !p2) {
@@ -177,24 +176,19 @@ function calculate() {
     let second = prizePool - first;
     let head = 50;
 
-    let html = `
-    <h3>🏆 สรุปผล</h3>
+    let html = `<h3>🏆 สรุปผล</h3>`;
 
-    🥇 <b>${names[p1-1]}</b> = ${first + head + (kills[p1-1]*50)} บาท<br>
-    🥈 <b>${names[p2-1]}</b> = ${second + (kills[p2-1]*50)} บาท<br><br>
-
-    🧑‍💼 Dealer: ${dealer} บาท<br><br>
-
-    <h3>📊 ตารางคะแนน</h3>
-
-    <table style="margin:auto; border-collapse: collapse; min-width: 700px;">
-    <tr style="background:#222;">
-        <th style="padding:10px;">Player</th>
-        <th>จ่าย</th>
-        <th>💀 Kill</th>
+    html += `
+    <table style="margin:auto; min-width:700px;">
+    <tr>
+        <th>Player</th>
+        <th>Rank</th>
+        <th>Kill</th>
+        <th>💰 Bounty</th>
         <th>Blind</th>
-        <th>💰 ผลรวม</th>
-        <th>📈 ยอดสุทธิ</th>
+        <th>จ่าย</th>
+        <th>ได้</th>
+        <th>สุทธิ</th>
     </tr>
     `;
 
@@ -203,48 +197,35 @@ function calculate() {
         let blindCount = +document.getElementById("blind" + i).value || 0;
         let pay = 270 + (blindCount * 250);
 
-        let killMoney = (kills[i-1] || 0) * 50;
+        let killMoney = kills[i-1] * 50;
+        let bounty = killMoney;
+
         let earn = killMoney;
 
-        let badge = "";
+        let rankText = "-";
 
         if (i === p1) {
             earn += first + head;
-            badge = " 🥇";
+            rankText = "🥇";
         } 
         else if (i === p2) {
             earn += second;
-            badge = " 🥈";
+            rankText = "🥈";
         }
 
         let profit = earn - pay;
 
         html += `
         <tr style="background:${i%2==0 ? '#111' : '#1a1a1a'};">
-            <td style="padding:10px;">${names[i-1]}${badge}</td>
-
-            <td>${pay}</td>
-
-            <td>
-                ${kills[i-1]} 
-                <span style="color:#00e676;">(+${killMoney})</span>
-            </td>
-
+            <td>${names[i-1]}</td>
+            <td>${rankText}</td>
+            <td>${kills[i-1]}</td>
+            <td>${bounty}</td>
             <td>${blindCount}</td>
-
-            <td style="color:#03a9f4;">
-                ${earn}
-                <div style="font-size:12px; color:#aaa; text-align:left;">
-                    + Kill: ${killMoney}<br>
-                    ${i === p1 ? `+ Rank1: ${first}<br>` : ""}
-                    ${i === p2 ? `+ Rank2: ${second}<br>` : ""}
-                    ${i === p1 ? `+ Head Me: ${head}<br>` : ""}
-                    - Buy-in: ${pay}
-                </div>
-            </td>
-
-            <td style="font-weight:bold; color:${profit >= 0 ? '#00e676' : '#ff5252'}">
-                ${profit >= 0 ? '+' : ''}${profit}
+            <td>${pay}</td>
+            <td>${earn}</td>
+            <td style="color:${profit>=0 ? '#00e676' : '#ff5252'}">
+                ${profit>=0?'+':''}${profit}
             </td>
         </tr>
         `;
@@ -253,6 +234,95 @@ function calculate() {
     html += `</table>`;
 
     document.getElementById("output").innerHTML = html;
+}
+
+// 🔥 SAVE FIX แล้ว
+function saveData() {
+    let n = +document.getElementById("players").value;
+
+    let p1 = 0, p2 = 0;
+
+    let names = [];
+    let kills = [];
+
+    let prizePool = 0;
+
+    for (let i=1;i<=n;i++) {
+
+        let name = document.getElementById("name"+i).value || ("P"+i);
+        let k = +document.getElementById("kill"+i).value || 0;
+        let b = +document.getElementById("blind"+i).value || 0;
+        let r = document.querySelector(`input[name="rank${i}"]:checked`).value;
+
+        if (r == 1) p1 = i;
+        if (r == 2) p2 = i;
+
+        names.push(name);
+        kills.push(k);
+
+        prizePool += 200 + (b * 200);
+    }
+
+    if (!p1 || !p2) {
+        alert("ต้องมี ที่ 1 และ ที่ 2");
+        return;
+    }
+
+    let first = Math.ceil(prizePool * 0.7);
+    let second = prizePool - first;
+    let head = 50;
+
+    let session = {
+        date: new Date().toISOString(), // 🔥 ใช้ ISO กันพังเดือน
+        players: []
+    };
+
+    for (let i = 1; i <= n; i++) {
+
+        let blindCount = +document.getElementById("blind" + i).value || 0;
+        let pay = 270 + (blindCount * 250);
+
+        let killMoney = kills[i-1] * 50;
+        let bounty = killMoney; // ✅ FIX ตรงนี้
+
+        let earn = killMoney;
+
+        let rank = 0;
+        let rankText = "-";
+
+        if (i === p1) {
+            earn += first + head;
+            rank = 1;
+            rankText = "🥇";
+        } 
+        else if (i === p2) {
+            earn += second;
+            rank = 2;
+            rankText = "🥈";
+        }
+
+        let profit = earn - pay;
+
+        session.players.push({
+            name: names[i-1].toLowerCase(),
+            displayName: names[i-1],
+            rank,        // ✅ ใช้คำนวณ
+            rankText,    // ✅ ใช้แสดง
+            kill: kills[i-1],
+            bounty,
+            blind: blindCount,
+            pay,
+            earn,
+            profit
+        });
+    }
+
+    let history = JSON.parse(localStorage.getItem("pokerHistory") || "[]");
+    history.push(session);
+
+    localStorage.setItem("pokerHistory", JSON.stringify(history));
+
+    alert("✅ บันทึกแล้ว!");
 }
 
 generatePlayers();
