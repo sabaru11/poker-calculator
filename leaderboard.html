@@ -57,10 +57,13 @@ button {
 
 <h1>📺 Poker Leaderboard</h1>
 
+<!-- 🔥 Monthly Summary -->
 <div class="section">
+    <!-- <h2>📊 สรุปกำไร / ขาดทุน รายเดือน</h2> -->
     <div id="monthlySummary"></div>
 </div>
 
+<!-- 🔥 Dropdown เลือกวัน -->
 <div style="margin-bottom:10px;">
     📅 เลือกวันที่:
     <select id="dateSelect" onchange="jumpToDate()">
@@ -68,6 +71,7 @@ button {
     </select>
 </div>
 
+<!-- 🔥 History -->
 <div class="section">
     <h2>📜 ประวัติการเล่น</h2>
     <div id="history"></div>
@@ -82,8 +86,11 @@ function deleteSession(index) {
     if (!confirm("❗ ต้องการลบรายการนี้จริงไหม?")) return;
 
     let history = JSON.parse(localStorage.getItem("pokerHistory") || "[]");
+
     history.splice(index, 1);
+
     localStorage.setItem("pokerHistory", JSON.stringify(history));
+
     renderAll();
 }
 
@@ -102,6 +109,7 @@ function deleteMonth(monthKey) {
     });
 
     localStorage.setItem("pokerHistory", JSON.stringify(history));
+
     renderAll();
 }
 
@@ -111,13 +119,16 @@ function deleteMonth(monthKey) {
 function renderDateDropdown() {
 
     let history = JSON.parse(localStorage.getItem("pokerHistory") || "[]");
+
     let select = document.getElementById("dateSelect");
 
     let html = `<option value="">-- เลือกวันที่ --</option>`;
 
     history.slice().reverse().forEach(session => {
+
         let date = new Date(session.date).toLocaleString("th-TH");
         let id = "session_" + session.date;
+
         html += `<option value="${id}">${date}</option>`;
     });
 
@@ -125,12 +136,18 @@ function renderDateDropdown() {
 }
 
 function jumpToDate() {
+
     let id = document.getElementById("dateSelect").value;
+
     if (!id) return;
 
     let el = document.getElementById(id);
+
     if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
 }
 
@@ -140,14 +157,19 @@ function jumpToDate() {
 function renderMonthlySummary() {
 
     let history = JSON.parse(localStorage.getItem("pokerHistory") || "[]");
+
     let monthly = {};
 
     history.forEach(session => {
 
         let date = new Date(session.date);
-        let key = (date.getMonth()+1).toString().padStart(2,'0') + "/" + date.getFullYear();
 
-        if (!monthly[key]) monthly[key] = {};
+        let key = (date.getMonth()+1).toString().padStart(2,'0') 
+                + "/" + date.getFullYear();
+
+        if (!monthly[key]) {
+            monthly[key] = {};
+        }
 
         session.players.forEach(p => {
 
@@ -168,16 +190,14 @@ function renderMonthlySummary() {
 
             let player = monthly[key][name];
 
-            let isBlind = (p.blind || 0) > 0;
-            let dealerFee = isBlind ? 20 : 0;
-
-            player.profit += (p.profit || 0) - dealerFee;
+            player.profit += p.profit || 0;
             player.kill += p.kill || 0;
             player.blind += p.blind || 0;
-            player.pay += (p.pay || 0) + dealerFee;
+            player.pay += p.pay || 0;
             player.earn += p.earn || 0;
 
             let rank = Number(p.rank) || 0;
+
             if (rank === 1) player.first++;
             if (rank === 2) player.second++;
         });
@@ -198,6 +218,7 @@ function renderMonthlySummary() {
         </h3>`;
 
         let arr = Object.values(monthly[month]);
+
         arr.sort((a,b)=>b.profit - a.profit);
 
         html += `
@@ -216,6 +237,7 @@ function renderMonthlySummary() {
         `;
 
         arr.forEach((p,i)=>{
+
             html += `
             <tr style="background:${i%2==0 ? '#111' : '#1a1a1a'};">
                 <td>${i+1}</td>
@@ -245,6 +267,7 @@ function renderMonthlySummary() {
 function renderHistory() {
 
     let history = JSON.parse(localStorage.getItem("pokerHistory") || "[]");
+
     let html = "";
 
     history.slice().reverse().forEach((session,reverseIndex) => {
@@ -253,20 +276,10 @@ function renderHistory() {
         let date = new Date(session.date).toLocaleString("th-TH");
         let sessionId = "session_" + session.date;
 
-        // 🔥 นับ blind
-        let blindCount = session.players.filter(p => (p.blind || 0) > 0).length;
-        let dealerBase = 140;
-        let dealerExtra = blindCount * 20;
-        let dealerTotal = dealerBase + dealerExtra;
-
         html += `
         <h3 id="${sessionId}">🕒 ${date}
         <button class="btn-delete" onclick="deleteSession(${realIndex})">ลบ</button>
         </h3>
-
-        <div style="margin-bottom:10px; color:#ffd54f;">
-            🎲 ค่า Dealer: ${dealerBase} / blind + ${dealerExtra} = ${dealerTotal}
-        </div>
         `;
 
         html += `
@@ -285,12 +298,6 @@ function renderHistory() {
 
         session.players.forEach((p,i)=>{
 
-            let isBlind = (p.blind || 0) > 0;
-            let dealerFee = isBlind ? 20 : 0;
-
-            let finalPay = (p.pay || 0) + dealerFee;
-            let finalProfit = (p.profit || 0) - dealerFee;
-
             html += `
             <tr style="background:${i%2==0 ? '#111' : '#1a1a1a'};">
                 <td>${p.displayName || p.name}</td>
@@ -298,10 +305,10 @@ function renderHistory() {
                 <td>${p.kill}</td>
                 <td>${p.bounty}</td>
                 <td>${p.blind}</td>
-                <td>${finalPay}</td>
+                <td>${p.pay}</td>
                 <td>${p.earn}</td>
-                <td style="color:${finalProfit >= 0 ? '#00e676' : '#ff5252'}">
-                    ${finalProfit >= 0 ? '+' : ''}${finalProfit}
+                <td style="color:${p.profit >= 0 ? '#00e676' : '#ff5252'}">
+                    ${p.profit >= 0 ? '+' : ''}${p.profit}
                 </td>
             </tr>
             `;
@@ -319,10 +326,12 @@ function renderHistory() {
 function renderAll() {
     renderMonthlySummary();
     renderHistory();
-    renderDateDropdown();
+    renderDateDropdown(); // 🔥 สำคัญ
 }
 
 renderAll();
+
+// 🔄 realtime
 setInterval(renderAll, 2000);
 
 </script>
