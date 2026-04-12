@@ -247,8 +247,25 @@ function renderHistory() {
 // 🗑 ลบ
 // ==========================
 window.deleteSession = async function(id) {
+
+    let pass = prompt("🔐 ใส่รหัสก่อนลบ:");
+
+    if (!pass) return;
+
+    if (pass !== "poker123") {
+        alert("❌ รหัสไม่ถูกต้อง");
+        return;
+    }
+
     if (!confirm("ลบรายการนี้จริงไหม?")) return;
-    await deleteDoc(doc(db, "sessions", id));
+
+    try {
+        await deleteDoc(doc(db, "sessions", id));
+        alert("🗑 ลบเรียบร้อย");
+    } catch (err) {
+        alert("❌ ลบไม่ได้ (ไม่มีสิทธิ์)");
+        console.error(err);
+    }
 }
 
 // ==========================
