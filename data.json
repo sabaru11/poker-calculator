@@ -1,1 +1,33 @@
-
+{
+  "history": [
+    {
+      "date": "2026-04-10T20:00:00",
+      "players": [
+        {
+          "name": "P1",
+          "displayName": "P1 🥇",
+          "rank": 1,
+          "rankText": "🥇",
+          "kill": 4,
+          "bounty": 200,
+          "blind": 1,
+          "pay": 520,
+          "earn": 1650,
+          "profit": 1130
+        },
+        {
+          "name": "P2",
+          "displayName": "P2 🥈",
+          "rank": 2,
+          "rankText": "🥈",
+          "kill": 3,
+          "bounty": 150,
+          "blind": 0,
+          "pay": 270,
+          "earn": 750,
+          "profit": 480
+        }
+      ]
+    }
+  ]
+}
