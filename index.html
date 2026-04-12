@@ -355,47 +355,44 @@ async function saveData() {
 
     let session = {
         date: new Date().toISOString(),
-        key: "tc",
+        key: "tc", // 🔥 ต้องมี
         players: []
     };
 
     for (let i = 1; i <= n; i++) {
 
         let blindCount = +document.getElementById("blind" + i).value || 0;
-
-        // ✅ ให้เหมือน calculate()
-        let pay = 200 + (blindCount * 200);
-        let dealer = 20 + (blindCount * 20);
-        let totalPay = pay + dealer;
+        let pay = 250 + (blindCount * 250);
+        let dealerPerPerson = 20 + (blindCount * 20);
 
         let killMoney = kills[i-1] * 50;
         let earn = killMoney;
 
         let rank = 0;
+        let rankText = "-";
 
         if (i === p1) {
             earn += first + head;
             rank = 1;
+            rankText = "🥇";
         } 
         else if (i === p2) {
             earn += second;
             rank = 2;
+            rankText = "🥈";
         }
 
-        let profit = earn - totalPay;
+        let profit = earn - pay;
 
         session.players.push({
             name: names[i-1].toLowerCase(),
             displayName: names[i-1],
             rank,
+            rankText,
             kill: kills[i-1],
             bounty: killMoney,
             blind: blindCount,
-
             pay,
-            dealer,
-            totalPay,
-
             earn,
             profit
         });
