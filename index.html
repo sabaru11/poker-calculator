@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Poker leaderboard</title>
+<title>50 Poker || 03/04/69 TC </title>
 
 <style>
 body {
@@ -11,226 +11,360 @@ body {
     color: #fff;
     text-align: center;
 }
-h2, h3 { margin-top: 20px; }
-table { margin: auto; border-collapse: collapse; }
-th, td { padding: 8px 12px; }
-th { background: #222; }
-.section { margin-bottom: 40px; }
-button {
-    padding: 5px 10px;
+
+.box {
+    margin-top: 20px;
+}
+
+#playerInputs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 900px;
+    margin: 20px auto;
+}
+
+@media (max-width: 600px) {
+    #playerInputs {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.player {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+input {
+    margin-top: 5px;
+}
+
+input[type="number"] {
+    width: 60px;
+}
+
+input[type="text"] {
+    width: 100px;
+}
+
+.rank {
+    margin-top: 5px;
+    font-size: 13px;
+}
+
+.blind-btn {
+    background: #333;
+    color: #fff;
+    margin: 2px;
     border: none;
     border-radius: 5px;
-    cursor: pointer;
-    margin: 5px;
+    padding: 4px 6px;
+    font-size: 12px;
 }
-.btn-delete { background: #ff5252; color: white; }
-.btn-month { background: orange; color: black; }
+
+.blind-btn.active {
+    background: #00c853;
+    color: #000;
+}
+
+button {
+    margin-top: 10px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.result {
+    margin-top: 20px;
+}
 </style>
 </head>
 
 <body>
 
-<h1>📺 Poker Leaderboard</h1>
+<div class="box">
+    <h2>🎲 Poker CAL 50 || 03/04/69 </h2>
 
-<div class="section">
-    <div id="monthlySummary"></div>
-</div>
+    จำนวนผู้เล่น:
+    <input type="number" id="players" value="7" onchange="generatePlayers()">
 
-<div style="margin-bottom:10px;">
-    📅 เลือกวันที่:
-    <select id="dateSelect" onchange="jumpToDate()">
-        <option value="">-- เลือกวันที่ --</option>
-    </select>
-</div>
+    <div id="playerInputs"></div>
 
-<div class="section">
-    <h2>📜 ประวัติการเล่น</h2>
-    <div id="history"></div>
+    <button onclick="calculate()">คำนวณ</button>
+    <button onclick="saveData()">💾 Save</button>
+
+    <div class="result" id="output"></div>
 </div>
 
 <script>
 
-let history = [];
+function setBlind(p, v) {
+    document.getElementById("blind"+p).value = v;
 
-// ==========================
-// 📥 โหลด JSON
-// ==========================
-async function loadData() {
-    try {
-        let res = await fetch("data.json?nocache=" + new Date().getTime());
-        let data = await res.json();
-        history = data.history || [];
-        renderAll();
-    } catch (err) {
-        console.error("โหลดข้อมูลไม่ได้", err);
+    let btns = document.querySelectorAll(`#p${p} .blind-btn`);
+    btns.forEach(b=>b.classList.remove("active"));
+    btns[v].classList.add("active");
+}
+
+function generatePlayers() {
+    let n = +document.getElementById("players").value;
+    let box = document.getElementById("playerInputs");
+    box.innerHTML = "";
+
+    for (let i=1;i<=n;i++) {
+        box.innerHTML += `
+        <div class="player" id="p${i}">
+            <b>P${i}</b><br>
+
+            👤 <input type="text" id="name${i}" placeholder="ชื่อผู้เล่น"><br>
+
+            🔫 <input type="number" id="kill${i}" value="0"><br>
+
+            <div class="rank">
+                <label><input type="radio" name="rank${i}" value="0" checked> -</label>
+                <label><input type="radio" name="rank${i}" value="1"> 🥇</label>
+                <label><input type="radio" name="rank${i}" value="2"> 🥈</label>
+            </div>
+
+            <div>
+                <button class="blind-btn active" onclick="setBlind(${i},0)">0</button>
+                <button class="blind-btn" onclick="setBlind(${i},1)">1</button>
+                <button class="blind-btn" onclick="setBlind(${i},2)">2</button>
+                <button class="blind-btn" onclick="setBlind(${i},3)">3</button>
+            </div>
+
+            <input type="hidden" id="blind${i}" value="0">
+        </div>
+        `;
     }
 }
 
-// ==========================
-// 📅 DROPDOWN
-// ==========================
-function renderDateDropdown() {
-    let select = document.getElementById("dateSelect");
+function calculate() {
+    let n = +document.getElementById("players").value;
 
-    let html = `<option value="">-- เลือกวันที่ --</option>`;
+    let p1 = 0, p2 = 0;
 
-    history.slice().reverse().forEach(session => {
-        let date = new Date(session.date).toLocaleString("th-TH");
-        let id = "session_" + session.date;
-        html += `<option value="${id}">${date}</option>`;
-    });
+    let names = [];
+    let kills = [];
 
-    select.innerHTML = html;
-}
+    let prizePool = 0;
 
-function jumpToDate() {
-    let id = document.getElementById("dateSelect").value;
-    if (!id) return;
+    let tableFee = 0;
+    let bountyTotal = 0;
+    let dealerTotal = 0;
 
-    let el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-}
+    for (let i=1;i<=n;i++) {
 
-// ==========================
-// 🔥 MONTHLY SUMMARY
-// ==========================
-function renderMonthlySummary() {
+        let name = document.getElementById("name"+i).value || ("P"+i);
+        let k = +document.getElementById("kill"+i).value || 0;
+        let b = +document.getElementById("blind"+i).value || 0;
+        let r = document.querySelector(`input[name="rank${i}"]:checked`).value;
 
-    let monthly = {};
+        if (r == 1) p1 = i;
+        if (r == 2) p2 = i;
 
-    history.forEach(session => {
+        names.push(name);
+        kills.push(k);
 
-        let date = new Date(session.date);
-        let key = (date.getMonth()+1).toString().padStart(2,'0') 
-                + "/" + date.getFullYear();
+        prizePool += 200 + (b * 200);
 
-        if (!monthly[key]) monthly[key] = {};
+        // 💰 ค่าโต๊ะ
+        tableFee += 200 + (b * 200);
 
-        session.players.forEach(p => {
+        // 🎯 ค่าหัว
+        bountyTotal += 50 + (b * 50);
 
-            if (!monthly[key][p.name]) {
-                monthly[key][p.name] = {
-                    displayName: p.displayName || p.name,
-                    profit: 0, kill: 0, blind: 0,
-                    pay: 0, earn: 0, first: 0, second: 0
-                };
-            }
+        // 🎲 ค่า dealer (ไม่นับ buy-in)
+        dealerTotal += 20;
+    }
 
-            let player = monthly[key][p.name];
+    if (!p1 || !p2) {
+        alert("ต้องมี ที่ 1 และ ที่ 2");
+        return;
+    }
 
-            player.profit += p.profit || 0;
-            player.kill += p.kill || 0;
-            player.blind += p.blind || 0;
-            player.pay += p.pay || 0;
-            player.earn += p.earn || 0;
+    let first = Math.ceil(prizePool * 0.7);
+    let second = prizePool - first;
+    let head = 50;
 
-            if (p.rank == 1) player.first++;
-            if (p.rank == 2) player.second++;
-        });
-    });
+    let html = `<h3>🏆 สรุปผล</h3>`;
 
-    let html = "";
+    html += `
+    <table style="margin:auto; min-width:700px;">
+    <tr>
+        <th>Player</th>
+        <th>Rank</th>
+        <th>Kill</th>
+        <th>💰 Bounty</th>
+        <th>Blind-in</th>
+        <th>จ่าย</th>
+        <th>คำนวน</th>
+        <th>รายได้</th>
+        <th>ยอดสุทธิ</th>
+    </tr>
+    `;
 
-    Object.keys(monthly).sort((a,b)=>{
-        let [ma,ya] = a.split('/');
-        let [mb,yb] = b.split('/');
-        return new Date(yb,mb-1) - new Date(ya,ma-1);
-    }).forEach(month => {
+    for (let i = 1; i <= n; i++) {
 
-        html += `<h3>📅 ${month}</h3>`;
+        let blindCount = +document.getElementById("blind" + i).value || 0;
+        let pay = 270 + (blindCount * 250);
 
-        let arr = Object.values(monthly[month]);
-        arr.sort((a,b)=>b.profit - a.profit);
+        let killMoney = kills[i-1] * 50;
+        let bounty = killMoney;
 
-        html += `<table style="min-width:900px;">`;
+        let earn = killMoney;
+
+        let rankText = "-";
+
+        if (i === p1) {
+            earn += first + head;
+            rankText = "🥇";
+        } 
+        else if (i === p2) {
+            earn += second;
+            rankText = "🥈";
+        }
+
+        let profit = earn - pay;
+
         html += `
-        <tr>
-            <th>อันดับ</th><th>ผู้เล่น</th><th>Kill</th>
-            <th>Blind</th><th>จ่าย</th><th>ได้</th>
-            <th>🥇</th><th>🥈</th><th>สุทธิ</th>
-        </tr>`;
+        <tr style="background:${i%2==0 ? '#111' : '#1a1a1a'};">
+            <td>${names[i-1]}</td>
+            <td>${rankText}</td>
+            <td>${kills[i-1]}</td>
+            <td>${bounty}</td>
+            <td>${blindCount}</td>
+            <td>${pay}</td>
 
-        arr.forEach((p,i)=>{
-            html += `
-            <tr>
-                <td>${i+1}</td>
-                <td>${p.displayName}</td>
-                <td>${p.kill}</td>
-                <td>${p.blind}</td>
-                <td>${p.pay}</td>
-                <td>${p.earn}</td>
-                <td>${p.first}</td>
-                <td>${p.second}</td>
-                <td style="color:${p.profit>=0?'#00e676':'#ff5252'}">
-                    ${p.profit>=0?'+':''}${p.profit}
-                </td>
-            </tr>`;
+            <td style="padding: 10px;">
+                <div style="font-size:12px; color:#aaa; text-align:left;">
+                ${i === p1 ? `<span style="color:gold;">+ Rank1: ${first}</span><br>` : ""}
+                ${i === p2 ? `<span style="color:cyan;">+ Rank2: ${second}</span><br>` : ""}
+                + Kill: ${killMoney}<br>
+                ${i === p1 ? `+ Head Me: ${head}<br>` : ""}
+                - StartBuy/Buy-in: ${pay}
+                </div>
+            </td>
+            
+            <td style="color:#03a9f4;">${earn}</td>
+            <td style="color:${profit>=0 ? '#00e676' : '#ff5252'}">
+                ${profit>=0?'+':''}${profit}
+            </td>
+        </tr>
+        `;
+    }
+
+    html += `
+    <div style="">
+        💰 ค่าโต๊ะรวม: ${tableFee}<br>
+        🎯 ค่าหัวรวม: ${bountyTotal}<br>
+        🔥 รวมทั้งหมด: ${tableFee + bountyTotal} (โต๊ะ+ค่าหัว) <br><br>
+
+        🎲 ค่า Dealer: ${dealerTotal}<br>
+        <br>
+        <br>
+        <br>
+    </div>
+    `;
+
+    html += `</table>`;
+    
+
+    document.getElementById("output").innerHTML = html;
+}
+
+// 🔥 SAVE FIX แล้ว
+function saveData() {
+    let n = +document.getElementById("players").value;
+
+    let p1 = 0, p2 = 0;
+
+    let names = [];
+    let kills = [];
+
+    let prizePool = 0;
+
+    for (let i=1;i<=n;i++) {
+
+        let name = document.getElementById("name"+i).value || ("P"+i);
+        let k = +document.getElementById("kill"+i).value || 0;
+        let b = +document.getElementById("blind"+i).value || 0;
+        let r = document.querySelector(`input[name="rank${i}"]:checked`).value;
+
+        if (r == 1) p1 = i;
+        if (r == 2) p2 = i;
+
+        names.push(name);
+        kills.push(k);
+
+        prizePool += 200 + (b * 200);
+    }
+
+    if (!p1 || !p2) {
+        alert("ต้องมี ที่ 1 และ ที่ 2");
+        return;
+    }
+
+    let first = Math.ceil(prizePool * 0.7);
+    let second = prizePool - first;
+    let head = 50;
+
+    let session = {
+        date: new Date().toISOString(), // 🔥 ใช้ ISO กันพังเดือน
+        players: []
+    };
+
+    for (let i = 1; i <= n; i++) {
+
+        let blindCount = +document.getElementById("blind" + i).value || 0;
+        let pay = 270 + (blindCount * 250);
+
+        let killMoney = kills[i-1] * 50;
+        let bounty = killMoney; // ✅ FIX ตรงนี้
+
+        let earn = killMoney;
+
+        let rank = 0;
+        let rankText = "-";
+
+        if (i === p1) {
+            earn += first + head;
+            rank = 1;
+            rankText = "🥇";
+        } 
+        else if (i === p2) {
+            earn += second;
+            rank = 2;
+            rankText = "🥈";
+        }
+
+        let profit = earn - pay;
+
+        session.players.push({
+            name: names[i-1].toLowerCase(),
+            displayName: names[i-1],
+            rank,        // ✅ ใช้คำนวณ
+            rankText,    // ✅ ใช้แสดง
+            kill: kills[i-1],
+            bounty,
+            blind: blindCount,
+            pay,
+            earn,
+            profit
         });
+    }
 
-        html += `</table><br>`;
-    });
+    let history = JSON.parse(localStorage.getItem("pokerHistory") || "[]");
+    history.push(session);
 
-    document.getElementById("monthlySummary").innerHTML = html;
+    localStorage.setItem("pokerHistory", JSON.stringify(history));
+
+    alert("✅ บันทึกแล้ว!");
 }
 
-// ==========================
-// 📜 HISTORY
-// ==========================
-function renderHistory() {
-
-    let html = "";
-
-    history.slice().reverse().forEach(session => {
-
-        let date = new Date(session.date).toLocaleString("th-TH");
-        let sessionId = "session_" + session.date;
-
-        html += `<h3 id="${sessionId}">🕒 ${date}</h3>`;
-
-        html += `<table style="min-width:700px;">`;
-        html += `
-        <tr>
-            <th>Player</th><th>Rank</th><th>Kill</th>
-            <th>Bounty</th><th>Blind</th>
-            <th>จ่าย</th><th>ได้</th><th>สุทธิ</th>
-        </tr>`;
-
-        session.players.forEach(p=>{
-            html += `
-            <tr>
-                <td>${p.displayName || p.name}</td>
-                <td>${p.rankText || p.rank}</td>
-                <td>${p.kill}</td>
-                <td>${p.bounty}</td>
-                <td>${p.blind}</td>
-                <td>${p.pay}</td>
-                <td>${p.earn}</td>
-                <td style="color:${p.profit>=0?'#00e676':'#ff5252'}">
-                    ${p.profit>=0?'+':''}${p.profit}
-                </td>
-            </tr>`;
-        });
-
-        html += `</table><br>`;
-    });
-
-    document.getElementById("history").innerHTML = html;
-}
-
-// ==========================
-// 🚀 INIT
-// ==========================
-function renderAll() {
-    renderMonthlySummary();
-    renderHistory();
-    renderDateDropdown();
-}
-
-// โหลดครั้งแรก
-loadData();
-
-// รีเฟรชทุก 5 วิ (เผื่อมีคนแก้ JSON)
-setInterval(loadData, 5000);
+generatePlayers();
 
 </script>
 
