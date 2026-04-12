@@ -207,7 +207,8 @@ function calculate() {
         bountyTotal += 50 + (b * 50);
 
         // 🎲 ค่า dealer (ไม่นับ buy-in)
-        dealerTotal += 20;
+        dealerBase += 20;
+        dealerBuyin += b * 20;
     }
 
     if (!p1 || !p2) {
@@ -292,7 +293,8 @@ function calculate() {
         🎯 ค่าหัวรวม: ${bountyTotal}<br>
         🔥 รวมทั้งหมด: ${tableFee + bountyTotal} (โต๊ะ+ค่าหัว) <br><br>
 
-        🎲 ค่า Dealer: ${dealerTotal}<br>
+        🎲 Dealer + ${dealerBase} | + Buy-in : ${dealerBuyin} = (รวม ${dealerBase + dealerBuyin})
+        <br>
         <br>
         <br>
         <br>
