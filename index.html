@@ -173,7 +173,7 @@ function generatePlayers() {
 
 function calculate() {
     let n = +document.getElementById("players").value;
-
+    
     let p1 = 0, p2 = 0;
 
     let names = [];
@@ -184,6 +184,7 @@ function calculate() {
     let tableFee = 0;
     let bountyTotal = 0;
     let dealerTotal = 0;
+    let dealer_buyin = 20;
 
     for (let i=1;i<=n;i++) {
 
@@ -293,7 +294,7 @@ function calculate() {
         🎯 ค่าหัวรวม: ${bountyTotal}<br>
         🔥 รวมทั้งหมด: ${tableFee + bountyTotal} (โต๊ะ+ค่าหัว) <br><br>
 
-        🎲 ค่า Dealer: ${dealerTotal} | + Buy-in ${dealer}<br>
+        🎲 ค่า Dealer: ${dealerTotal} | + Buy-in ${dealer_buyin}<br>
         <br>
         <br>
         <br>
