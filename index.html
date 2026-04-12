@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>50 Poker || 03/04/69 TC </title>
+<title>50 Poker</title>
 
 <style>
 body {
@@ -85,7 +85,7 @@ button {
 <body>
 
 <div class="box">
-    <h2>🎲 Poker CAL 50 || 03/04/69 </h2>
+    <h2>🎲 คำนวนเงิน 270</h2>
 
     จำนวนผู้เล่น:
     <input type="number" id="players" value="7" onchange="generatePlayers()">
@@ -207,8 +207,7 @@ function calculate() {
         bountyTotal += 50 + (b * 50);
 
         // 🎲 ค่า dealer (ไม่นับ buy-in)
-        dealerBase += 20;
-        dealerBuyin += b * 20;
+        dealerTotal += 20;
     }
 
     if (!p1 || !p2) {
@@ -293,8 +292,7 @@ function calculate() {
         🎯 ค่าหัวรวม: ${bountyTotal}<br>
         🔥 รวมทั้งหมด: ${tableFee + bountyTotal} (โต๊ะ+ค่าหัว) <br><br>
 
-        🎲 Dealer + ${dealerBase} | + Buy-in : ${dealerBuyin} = (รวม ${dealerBase + dealerBuyin})
-        <br>
+        🎲 ค่า Dealer: ${dealerTotal}<br>
         <br>
         <br>
         <br>
