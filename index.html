@@ -300,14 +300,13 @@ function calculate() {
 }
 
 // 🔥 SAVE FIX แล้ว
-function saveData() {
+async function saveData() {
+
     let n = +document.getElementById("players").value;
 
     let p1 = 0, p2 = 0;
-
     let names = [];
     let kills = [];
-
     let prizePool = 0;
 
     for (let i=1;i<=n;i++) {
@@ -336,7 +335,7 @@ function saveData() {
     let head = 50;
 
     let session = {
-        date: new Date().toISOString(), // 🔥 ใช้ ISO กันพังเดือน
+        date: new Date().toISOString(),
         players: []
     };
 
@@ -346,8 +345,6 @@ function saveData() {
         let pay = 270 + (blindCount * 250);
 
         let killMoney = kills[i-1] * 50;
-        let bounty = killMoney; // ✅ FIX ตรงนี้
-
         let earn = killMoney;
 
         let rank = 0;
@@ -369,10 +366,10 @@ function saveData() {
         session.players.push({
             name: names[i-1].toLowerCase(),
             displayName: names[i-1],
-            rank,        // ✅ ใช้คำนวณ
-            rankText,    // ✅ ใช้แสดง
+            rank,
+            rankText,
             kill: kills[i-1],
-            bounty,
+            bounty: killMoney,
             blind: blindCount,
             pay,
             earn,
@@ -380,12 +377,12 @@ function saveData() {
         });
     }
 
-    let history = JSON.parse(localStorage.getItem("pokerHistory") || "[]");
-    history.push(session);
+    // 🔥 ส่งขึ้น Firebase
+    const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
-    localStorage.setItem("pokerHistory", JSON.stringify(history));
+    await addDoc(collection(window.db, "sessions"), session);
 
-    alert("✅ บันทึกแล้ว!");
+    alert("✅ บันทึกขึ้น Firebase แล้ว!");
 }
 
 generatePlayers();
