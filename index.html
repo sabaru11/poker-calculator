@@ -238,8 +238,8 @@ function calculate() {
 
     for (let i = 1; i <= n; i++) {
 
-        let dealer = 20;
         let blindCount = +document.getElementById("blind" + i).value || 0;
+        let dealer = 20;
         let pay = 270 + (blindCount * 250) + dealer;
 
         let killMoney = kills[i-1] * 50;
@@ -349,8 +349,8 @@ async function saveData() {
 
     for (let i = 1; i <= n; i++) {
 
-        let dealer = 20;
         let blindCount = +document.getElementById("blind" + i).value || 0;
+        let dealer = 20;
         let pay = 270 + (blindCount * 250) + dealer;
 
         let killMoney = kills[i-1] * 50;
