@@ -6,45 +6,131 @@
 
 <style>
 body {
-    font-family: Arial;
-    background: #0d0d0d;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
     color: #fff;
     text-align: center;
+    margin: 0;
+    padding: 10px; /* ลด padding รอบนอก */
 }
-h2, h3 { margin-top: 20px; }
-table { margin: auto; border-collapse: collapse; }
-th, td { padding: 8px 12px; }
-th { background: #222; }
-.section { margin-bottom: 40px; }
+
+h1 { 
+    font-size: 1.8em; /* ลดขนาดหัวข้อลง */
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    margin-bottom: 20px;
+}
+
+h2 { font-size: 1.3em; margin-bottom: 10px; }
+
+/* 🏆 Container ของตาราง - ปรับให้แคบลงเล็กน้อย */
+.section { 
+    margin: auto;
+    max-width: 850px; 
+    margin-bottom: 30px; 
+}
+
+table { 
+    width: 100%;
+    margin: auto; 
+    border-collapse: separate; 
+    border-spacing: 0 4px; /* ลดระยะห่างระหว่างแถวลงครึ่งหนึ่ง */
+}
+
+th { 
+    background: transparent;
+    color: #888;
+    text-transform: uppercase;
+    font-size: 11px; /* ฟอนต์หัวตารางเล็กลง */
+    letter-spacing: 1px;
+    padding: 10px 8px; /* ลด padding */
+}
+
+/* แถวปกติ - ปรับให้เล็กลง */
+td { 
+    padding: 8px 10px; /* ลดความหนาของแถวลงอย่างชัดเจน */
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px; /* ขนาดฟอนต์ข้อมูลเล็กลงให้ดูแพง */
+}
+
+/* ทำให้ขอบตารางมน */
+td:first-child { border-left: 1px solid rgba(255,255,255,0.05); border-radius: 8px 0 0 8px; }
+td:last-child { border-right: 1px solid rgba(255,255,255,0.05); border-radius: 0 8px 8px 0; }
+
+tr:hover td {
+    background: rgba(255, 255, 255, 0.07);
+    transition: 0.2s;
+}
+
+/* 🔥 แสงไฟวิ่งรอบช่องสำหรับ Winner Streak >= 2 เท่านั้น */
+.winner-streak-glow {
+    position: relative;
+    background: rgba(255, 193, 7, 0.04) !important;
+    box-shadow: inset 0 0 15px rgba(255, 87, 34, 0.1);
+    overflow: hidden;
+}
+
+.winner-streak-glow::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 8px; /* ปรับมนตามแถว */
+    padding: 2px; 
+    background: linear-gradient(90deg, transparent, #ff5722, #ffca28, #ff5722, transparent);
+    background-size: 200% 100%;
+    animation: moveGlow 2s linear infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+}
+
+@keyframes moveGlow {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* สีของตัวเลขกำไร */
+.profit-plus { color: #00e676; font-weight: bold; text-shadow: 0 0 8px rgba(0,230,118,0.2); }
+.profit-minus { color: #ff5252; opacity: 0.8; }
+
+/* ไอคอน */
+.fire-red-anim { filter: drop-shadow(0 0 5px #ff5722); animation: scaleFire 0.6s infinite alternate; }
+.fire-blue-anim { filter: drop-shadow(0 0 5px #00e5ff); animation: scaleFire 0.6s infinite alternate; }
+
+@keyframes scaleFire {
+    from { transform: scale(1); }
+    to { transform: scale(1.15); }
+}
+
 button {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
+    padding: 3px 8px; /* ปุ่มเล็กลง */
+    font-size: 11px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 82, 82, 0.1);
+    color: #ff5252;
+    border-radius: 4px;
     cursor: pointer;
-    margin: 5px;
+    transition: 0.3s;
 }
-.btn-delete { background: #ff5252; color: white; }
+button:hover { background: #ff5252; color: #fff; }
+
 </style>
 </head>
 
 <body>
 
-<h1>📺 Poker Leaderboard</h1>
+<h1>Poker Leaderboard</h1>
 
 <div class="section">
     <div id="monthlySummary"></div>
 </div>
 
-<div style="margin-bottom:10px;">
-    📅 เลือกวันที่:
-    <select id="dateSelect" onchange="jumpToDate()">
-        <option value="">-- เลือกวันที่ --</option>
-    </select>
-</div>
-
 <div class="section">
-    <h2>📜 ประวัติการเล่น</h2>
-    <div id="history"></div>
+    <h3>📜 ประวัติการเล่น</h3> <div id="history"></div>
 </div>
 
 <script type="module">
@@ -53,9 +139,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import { getFirestore, collection, onSnapshot, deleteDoc, doc } 
 from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-// 🔥 config ของคุณ
 const firebaseConfig = {
-  apiKey: "AIzaSyCWAl-0DMtprO2UvUQZIXa6GqjWqq-9F38",
+  apiKey: "YOUR_KEY", 
   authDomain: "tc-poker.firebaseapp.com",
   projectId: "tc-poker",
   storageBucket: "tc-poker.firebasestorage.app",
@@ -67,215 +152,152 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let history = [];
+const STREAK_START_DATE = new Date("2026-04-12T00:00:00");
 
-// ==========================
-// 🔥 REALTIME LOAD
-// ==========================
 onSnapshot(collection(db, "sessions"), (snapshot) => {
-
     history = [];
-
     snapshot.forEach(docSnap => {
         let data = docSnap.data();
         data.id = docSnap.id;
         history.push(data);
     });
-
-    // เรียงใหม่
     history.sort((a,b)=> new Date(b.date) - new Date(a.date));
-
     renderAll();
 });
 
-// ==========================
-// 📅 DROPDOWN
-// ==========================
-function renderDateDropdown() {
-    let select = document.getElementById("dateSelect");
+function calculateStreaks() {
+    let streaks = {};
+    let sortedData = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    let html = `<option value="">-- เลือกวันที่ --</option>`;
+    sortedData.forEach(session => {
+        const sessionDate = new Date(session.date);
+        if (sessionDate < STREAK_START_DATE) return; 
 
-    history.forEach(session => {
-        let date = new Date(session.date).toLocaleString("th-TH");
-        let id = "session_" + session.date;
-        html += `<option value="${id}">${date}</option>`;
+        const playersInThisSession = session.players.map(p => p.name);
+
+        session.players.forEach(p => {
+            if (!streaks[p.name]) {
+                streaks[p.name] = { count: 0, lastStatus: null };
+            }
+            let s = streaks[p.name];
+            let currentStatus = (p.rank == 1) ? "win" : (p.rank == 2) ? "second" : "lose";
+
+            if (s.lastStatus === currentStatus) {
+                s.count++;
+            } else {
+                s.count = 1;
+                s.lastStatus = currentStatus;
+            }
+        });
+
+        Object.keys(streaks).forEach(playerName => {
+            if (!playersInThisSession.includes(playerName)) {
+                streaks[playerName] = { count: 0, lastStatus: null };
+            }
+        });
     });
-
-    select.innerHTML = html;
+    return streaks;
 }
 
-window.jumpToDate = function() {
-    let id = document.getElementById("dateSelect").value;
-    if (!id) return;
-
-    let el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+function getIconHtml(status, count) {
+    if (count <= 0) return "";
+    if (status === "win") {
+        return `<svg class="fire-red-anim" width="16" height="16" viewBox="0 0 24 24" style="vertical-align:middle;"><path fill="#ff5722" d="M13 3s-2 2-2 5 3 3 3 6-2 3-2 5a5 5 0 0 0 10 0c0-5-6-8-9-16z"/></svg> <small>x${count}</small>`;
+    }
+    if (status === "second") {
+        return `<svg class="fire-blue-anim" width="16" height="16" viewBox="0 0 24 24" style="vertical-align:middle;"><path fill="#00e5ff" d="M13 3s-2 2-2 5 3 3 3 6-2 3-2 5a5 5 0 0 0 10 0c0-5-6-8-9-16z"/></svg> <small>x${count}</small>`;
+    }
+    return `<small>💀 x${count}</small>`;
 }
 
-// ==========================
-// 🔥 MONTHLY SUMMARY
-// ==========================
 function renderMonthlySummary() {
-
     let monthly = {};
+    let allStreaks = calculateStreaks();
 
     history.forEach(session => {
-
         let date = new Date(session.date);
-        let key = (date.getMonth()+1).toString().padStart(2,'0') 
-                + "/" + date.getFullYear();
-
+        let key = (date.getMonth()+1).toString().padStart(2,'0') + "/" + date.getFullYear();
         if (!monthly[key]) monthly[key] = {};
 
         session.players.forEach(p => {
-
             if (!monthly[key][p.name]) {
-                monthly[key][p.name] = {
-                    displayName: p.displayName || p.name,
-                    profit: 0, kill: 0, blind: 0,
-                    pay: 0, earn: 0, first: 0, second: 0
-                };
+                monthly[key][p.name] = { name: p.name, displayName: p.displayName || p.name, profit: 0, kill: 0, blind: 0, pay: 0, earn: 0, first: 0, second: 0 };
             }
-
             let player = monthly[key][p.name];
-
             player.profit += p.profit || 0;
             player.kill += p.kill || 0;
             player.blind += p.blind || 0;
             player.pay += p.pay || 0;
             player.earn += p.earn || 0;
-
             if (p.rank == 1) player.first++;
             if (p.rank == 2) player.second++;
         });
     });
 
     let html = "";
-
-    Object.keys(monthly).sort((a,b)=>{
-        let [ma,ya] = a.split('/');
-        let [mb,yb] = b.split('/');
-        return new Date(yb,mb-1) - new Date(ya,ma-1);
-    }).forEach(month => {
-
+    Object.keys(monthly).forEach(month => {
         html += `<h3>📅 ${month}</h3>`;
+        let arr = Object.values(monthly[month]).sort((a,b)=>b.profit - a.profit);
+        html += `<table><tr><th>#</th><th>ผู้เล่น</th><th>Kill</th><th>Buy-in</th><th>จ่าย</th><th>ได้</th><th>🥇</th><th>🥈</th><th>Streak</th><th>สุทธิ</th></tr>`;
+            arr.forEach((p, i) => {
+                let s = allStreaks[p.name];
+                let streakIcon = (s && s.count > 0) ? getIconHtml(s.lastStatus, s.count) : "";
+                let rowClass = (s && s.lastStatus === 'win' && s.count >= 2) ? 'class="winner-streak-glow"' : '';
 
-        let arr = Object.values(monthly[month]);
-        arr.sort((a,b)=>b.profit - a.profit);
-
-        html += `<table style="min-width:900px;">`;
-        html += `
-        <tr>
-            <th>อันดับ</th><th>ผู้เล่น</th><th>Kill</th>
-            <th>Buy-in</th><th>จ่าย</th><th>ได้</th>
-            <th>🥇</th><th>🥈</th><th>สุทธิ</th>
-        </tr>`;
-
-        arr.forEach((p,i)=>{
-            html += `
-            <tr>
-                <td>${i+1}</td>
-                <td>${p.displayName}</td>
-                <td>${p.kill}</td>
-                <td>${p.blind}</td>
-                <td>${p.pay}</td>
-                <td>${p.earn}</td>
-                <td>${p.first}</td>
-                <td>${p.second}</td>
-                <td style="color:${p.profit>=0?'#00e676':'#ff5252'}">
-                    ${p.profit>=0?'+':''}${p.profit}
-                </td>
-            </tr>`;
-        });
-
+                html += `
+                <tr ${rowClass}>
+                    <td>${i+1}</td>
+                    <td><b>${p.displayName}</b></td>
+                    <td>${p.kill}</td>
+                    <td>${p.blind}</td>
+                    <td>${p.pay}</td>
+                    <td>${p.earn}</td>
+                    <td>${p.first}</td>
+                    <td>${p.second}</td>
+                    <td>${streakIcon}</td>
+                    <td class="${p.profit >= 0 ? 'profit-plus' : 'profit-minus'}">
+                        ${p.profit >= 0 ? '+' : ''}${p.profit}
+                    </td>
+                </tr>`;
+            });
         html += `</table><br>`;
     });
-
     document.getElementById("monthlySummary").innerHTML = html;
 }
 
-// ==========================
-// 📜 HISTORY
-// ==========================
 function renderHistory() {
-
     let html = "";
+    let allStreaks = calculateStreaks();
 
-    history.forEach(session => {
+    history.forEach((session, index) => {
+        let date = new Date(session.date).toLocaleString("th-TH", { dateStyle: 'short', timeStyle: 'short' });
+        html += `<h3>🕒 ${date} <button class="btn-delete" onclick="deleteSession('${session.id}')">ลบ</button></h3>`;
+        html += `<table><tr><th>Player</th><th>Rank</th><th>Kill</th><th>Bounty</th><th>Blind</th><th>จ่าย</th><th>ได้</th><th>Streak</th><th>สุทธิ</th></tr>`;
 
-        let date = new Date(session.date).toLocaleString("th-TH");
-        let sessionId = "session_" + session.date;
-
-        html += `
-        <h3 id="${sessionId}">
-            🕒 ${date}
-            <button class="btn-delete" onclick="deleteSession('${session.id}')">ลบ</button>
-        </h3>
-        `;
-
-        html += `<table style="min-width:700px;">`;
-        html += `
-        <tr>
-            <th>Player</th><th>Rank</th><th>Kill</th>
-            <th>Bounty</th><th>Blind</th>
-            <th>จ่าย</th><th>ได้</th><th>สุทธิ</th>
-        </tr>`;
-
-        session.players.forEach(p=>{
-            html += `
-            <tr>
-                <td>${p.displayName || p.name}</td>
-                <td>${p.rankText || p.rank}</td>
-                <td>${p.kill}</td>
-                <td>${p.bounty}</td>
-                <td>${p.blind}</td>
-                <td>${p.pay}</td>
-                <td>${p.earn}</td>
-                <td style="color:${p.profit>=0?'#00e676':'#ff5252'}">
-                    ${p.profit>=0?'+':''}${p.profit}
-                </td>
-            </tr>`;
+        session.players.forEach(p => {
+            let streakIcon = "";
+            let s = allStreaks[p.name];
+            if (index === 0 && s && s.count > 0) {
+                let currentStatus = (p.rank == 1) ? "win" : (p.rank == 2) ? "second" : "lose";
+                if (s.lastStatus === currentStatus) {
+                    streakIcon = getIconHtml(s.lastStatus, s.count);
+                }
+            }
+            html += `<tr><td>${p.displayName || p.name}</td><td>${p.rankText || p.rank}</td><td>${p.kill}</td><td>${p.bounty}</td><td>${p.blind}</td><td>${p.pay}</td><td>${p.earn}</td><td>${streakIcon}</td><td style="color:${p.profit>=0?'#00e676':'#ff5252'}">${p.profit>=0?'+':''}${p.profit}</td></tr>`;
         });
-
         html += `</table><br>`;
     });
-
     document.getElementById("history").innerHTML = html;
 }
 
-// ==========================
-// 🗑 ลบ
-// ==========================
 window.deleteSession = async function(id) {
-
     let pass = prompt("🔐 ใส่รหัสก่อนลบ:");
-
-    if (!pass) return;
-
-    if (pass !== "tc") {
-        alert("❌ รหัสไม่ถูกต้อง");
-        return;
-    }
-
+    if (pass !== "tc") return alert("❌ รหัสไม่ถูกต้อง");
     if (!confirm("ลบรายการนี้จริงไหม?")) return;
-
-    try {
-        await deleteDoc(doc(db, "sessions", id));
-        alert("🗑 ลบเรียบร้อย");
-    } catch (err) {
-        alert("❌ ลบไม่ได้ (ไม่มีสิทธิ์)");
-        console.error(err);
-    }
+    try { await deleteDoc(doc(db, "sessions", id)); alert("🗑 ลบเรียบร้อย"); } catch (err) { alert("❌ ลบไม่ได้"); }
 }
 
-// ==========================
-function renderAll() {
-    renderMonthlySummary();
-    renderHistory();
-    renderDateDropdown();
-}
-
+function renderAll() { renderMonthlySummary(); renderHistory(); }
 </script>
-
 </body>
 </html>
