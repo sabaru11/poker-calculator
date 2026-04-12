@@ -182,8 +182,13 @@ function calculate() {
     let prizePool = 0;
 
     let tableFee = 0;
+
     let bountyTotal = 0;
-    let dealerTotal = 0;
+    let bountyPaid = 0;
+
+    // ✅ ใช้ 2 ตัวนี้แทน dealerTotal
+    let dealerBase = 0;
+    let dealerBuyin = 0;
 
     for (let i=1;i<=n;i++) {
 
@@ -206,8 +211,12 @@ function calculate() {
         // 🎯 ค่าหัว
         bountyTotal += 50 + (b * 50);
 
-        // 🎲 ค่า dealer (ไม่นับ buy-in)
-        dealerTotal += 20;
+        // 🎲 Dealer (แยก 2 ส่วน)
+        let baseDealer = 20;
+        let buyinDealer = b * 20;
+
+        dealerBase += baseDealer;
+        dealerBuyin += buyinDealer;
     }
 
     if (!p1 || !p2) {
@@ -228,7 +237,7 @@ function calculate() {
         <th>Rank</th>
         <th>Kill</th>
         <th>💰 Bounty</th>
-        <th>Blind-in</th>
+        <th>Buy-in</th>
         <th>จ่าย</th>
         <th>คำนวน</th>
         <th>รายได้</th>
@@ -239,13 +248,17 @@ function calculate() {
     for (let i = 1; i <= n; i++) {
 
         let blindCount = +document.getElementById("blind" + i).value || 0;
-        let pay = 270 + (blindCount * 250);
+        let pay = 250 + (blindCount * 250);
+        let dealerPerPerson = 20 + (blindCount * 20);
+
+        // 👉 รวมจ่ายจริง
+        let totalPay = pay + dealerPerPerson;
 
         let killMoney = kills[i-1] * 50;
+        bountyPaid += killMoney;
+
         let bounty = killMoney;
-
         let earn = killMoney;
-
         let rankText = "-";
 
         if (i === p1) {
@@ -257,7 +270,7 @@ function calculate() {
             rankText = "🥈";
         }
 
-        let profit = earn - pay;
+        let profit = earn - totalPay;
 
         html += `
         <tr style="background:${i%2==0 ? '#111' : '#1a1a1a'};">
@@ -266,15 +279,16 @@ function calculate() {
             <td>${kills[i-1]}</td>
             <td>${bounty}</td>
             <td>${blindCount}</td>
-            <td>${pay}</td>
+            <td>${totalPay}</td>
 
             <td style="padding: 10px;">
                 <div style="font-size:12px; color:#aaa; text-align:left;">
                 ${i === p1 ? `<span style="color:gold;">+ Rank1: ${first}</span><br>` : ""}
                 ${i === p2 ? `<span style="color:cyan;">+ Rank2: ${second}</span><br>` : ""}
-                + Kill: ${killMoney}<br>
-                ${i === p1 ? `+ Head Me: ${head}<br>` : ""}
-                - StartBuy/Buy-in: ${pay}
+                ${kills[i-1] > 0 ? `<span style="color: #4FC244">+ Kill: ${killMoney}</span><br>` : ""}
+                ${i === p1 ? `<span style="color: #4FC244">+ Head Me: ${head}</span><br>` : ""}
+                <span style="color: #D16969;">- StartBuy/Buy-in: ${pay}</span><br>
+                <span style="color: #D16969;">- Dealer: ${dealerPerPerson}</span>
                 </div>
             </td>
             
@@ -286,21 +300,20 @@ function calculate() {
         `;
     }
 
+    let bountyDiff = bountyTotal - bountyPaid;
+
     html += `
-    <div style="">
+    <div>
         💰 ค่าโต๊ะรวม: ${tableFee}<br>
-        🎯 ค่าหัวรวม: ${bountyTotal}<br>
+        🎯 ค่าหัวรวม:  ${bountyPaid} / ${bountyTotal}<br>
         🔥 รวมทั้งหมด: ${tableFee + bountyTotal} (โต๊ะ+ค่าหัว) <br><br>
 
-        🎲 ค่า Dealer: ${dealerTotal}<br>
-        <br>
-        <br>
-        <br>
+        🎲 Dealer + ${dealerBase} | + Buy-in : ${dealerBuyin} = (รวม ${dealerBase + dealerBuyin})
+        <br><br><br><br>
     </div>
     `;
 
     html += `</table>`;
-    
 
     document.getElementById("output").innerHTML = html;
 }
