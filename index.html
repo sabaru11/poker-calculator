@@ -238,8 +238,9 @@ function calculate() {
 
     for (let i = 1; i <= n; i++) {
 
+        let dealer = 20;
         let blindCount = +document.getElementById("blind" + i).value || 0;
-        let pay = 270 + (blindCount * 250);
+        let pay = 270 + (blindCount * 250) + dealer;
 
         let killMoney = kills[i-1] * 50;
         let bounty = killMoney;
@@ -292,7 +293,7 @@ function calculate() {
         🎯 ค่าหัวรวม: ${bountyTotal}<br>
         🔥 รวมทั้งหมด: ${tableFee + bountyTotal} (โต๊ะ+ค่าหัว) <br><br>
 
-        🎲 ค่า Dealer: ${dealerTotal}<br>
+        🎲 ค่า Dealer: ${dealerTotal} | + Buy-in ${dealer}<br>
         <br>
         <br>
         <br>
@@ -348,8 +349,9 @@ async function saveData() {
 
     for (let i = 1; i <= n; i++) {
 
+        let dealer = 20;
         let blindCount = +document.getElementById("blind" + i).value || 0;
-        let pay = 270 + (blindCount * 250);
+        let pay = 270 + (blindCount * 250) + dealer;
 
         let killMoney = kills[i-1] * 50;
         let earn = killMoney;
