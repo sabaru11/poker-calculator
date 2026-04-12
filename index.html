@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>50 Poker || TC </title>
+<title>50 Poker || 03/04/69 TC </title>
 
 <style>
 body {
@@ -85,7 +85,7 @@ button {
 <body>
 
 <div class="box">
-    <h2>คำนวนทัวร์ Poker 270</h2>
+    <h2>🎲 Poker CAL 50 || 03/04/69 </h2>
 
     จำนวนผู้เล่น:
     <input type="number" id="players" value="7" onchange="generatePlayers()">
@@ -173,7 +173,7 @@ function generatePlayers() {
 
 function calculate() {
     let n = +document.getElementById("players").value;
-    
+
     let p1 = 0, p2 = 0;
 
     let names = [];
@@ -184,7 +184,6 @@ function calculate() {
     let tableFee = 0;
     let bountyTotal = 0;
     let dealerTotal = 0;
-    let dealer_buyin = 20;
 
     for (let i=1;i<=n;i++) {
 
@@ -240,8 +239,7 @@ function calculate() {
     for (let i = 1; i <= n; i++) {
 
         let blindCount = +document.getElementById("blind" + i).value || 0;
-        let dealer = 20;
-        let pay = 270 + (blindCount * 250) + dealer;
+        let pay = 270 + (blindCount * 250);
 
         let killMoney = kills[i-1] * 50;
         let bounty = killMoney;
@@ -294,7 +292,7 @@ function calculate() {
         🎯 ค่าหัวรวม: ${bountyTotal}<br>
         🔥 รวมทั้งหมด: ${tableFee + bountyTotal} (โต๊ะ+ค่าหัว) <br><br>
 
-        🎲 ค่า Dealer: ${dealerTotal} | + Buy-in ${dealer_buyin}<br>
+        🎲 ค่า Dealer: ${dealerTotal}<br>
         <br>
         <br>
         <br>
@@ -351,8 +349,7 @@ async function saveData() {
     for (let i = 1; i <= n; i++) {
 
         let blindCount = +document.getElementById("blind" + i).value || 0;
-        let dealer = 20;
-        let pay = 270 + (blindCount * 250) + dealer;
+        let pay = 270 + (blindCount * 250);
 
         let killMoney = kills[i-1] * 50;
         let earn = killMoney;
