@@ -7,7 +7,8 @@
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
+    background: radial-gradient(#050505);
+    /* background: radial-gradient(circle, #1a1a1a 0%, #050505 100%); */
     color: #fff;
     text-align: center;
     margin: 0;
@@ -49,8 +50,8 @@ th {
 /* แถวปกติ - ปรับให้เล็กลง */
 td { 
     padding: 8px 10px; /* ลดความหนาของแถวลงอย่างชัดเจน */
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(5px);
+    background: rgba(255,255,255,0.04);
+    /* backdrop-filter: blur(5px); */
     border-top: 1px solid rgba(255,255,255,0.05);
     border-bottom: 1px solid rgba(255,255,255,0.05);
     font-size: 13px; /* ขนาดฟอนต์ข้อมูลเล็กลงให้ดูแพง */
@@ -68,25 +69,25 @@ tr:hover td {
 /* 🔥 แสงไฟวิ่งรอบช่องสำหรับ Winner Streak >= 2 เท่านั้น */
 .winner-streak-glow {
     position: relative;
-    background: rgba(255, 193, 7, 0.04) !important;
-    box-shadow: inset 0 0 15px rgba(255, 87, 34, 0.1);
+    background: rgba(255, 191, 0, 0.24) !important;
+    /* box-shadow: inset 0 0 15px rgba(255, 87, 34, 0.1); */
     overflow: hidden;
 }
 
-.winner-streak-glow::after {
+/* .winner-streak-glow::after {
     content: "";
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    border-radius: 8px; /* ปรับมนตามแถว */
+    border-radius: 8px;
     padding: 2px; 
     background: linear-gradient(90deg, transparent, #ff5722, #ffca28, #ff5722, transparent);
     background-size: 200% 100%;
-    animation: moveGlow 2s linear infinite;
+    animation: moveGlow 10s linear infinite;
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: destination-out;
     mask-composite: exclude;
-}
+} */
 
 @keyframes moveGlow {
     0% { background-position: 200% 0; }
@@ -98,8 +99,8 @@ tr:hover td {
 .profit-minus { color: #ff5252; opacity: 0.8; }
 
 /* ไอคอน */
-.fire-red-anim { filter: drop-shadow(0 0 5px #ff5722); animation: scaleFire 0.6s infinite alternate; }
-.fire-blue-anim { filter: drop-shadow(0 0 5px #00e5ff); animation: scaleFire 0.6s infinite alternate; }
+/* .fire-red-anim { filter: drop-shadow(0 0 5px #ff5722); animation: scaleFire 0.6s infinite alternate; } */
+/* .fire-blue-anim { filter: drop-shadow(0 0 5px #00e5ff); animation: scaleFire 0.6s infinite alternate; } */
 
 @keyframes scaleFire {
     from { transform: scale(1); }
@@ -202,14 +203,15 @@ function calculateStreaks() {
 function getIconHtml(status, count) {
     if (count <= 0) return "";
     if (status === "win") {
-        return `<svg class="fire-red-anim" width="16" height="16" viewBox="0 0 24 24" style="vertical-align:middle;"><path fill="#ff5722" d="M13 3s-2 2-2 5 3 3 3 6-2 3-2 5a5 5 0 0 0 10 0c0-5-6-8-9-16z"/></svg> <small>x${count}</small>`;
+        return `🔥 <small>x${count}</small>`;
     }
     if (status === "second") {
-        return `<svg class="fire-blue-anim" width="16" height="16" viewBox="0 0 24 24" style="vertical-align:middle;"><path fill="#00e5ff" d="M13 3s-2 2-2 5 3 3 3 6-2 3-2 5a5 5 0 0 0 10 0c0-5-6-8-9-16z"/></svg> <small>x${count}</small>`;
+        return `❄️ <small>x${count}</small>`;
     }
     return `<small>💀 x${count}</small>`;
 }
 
+/* ===================== ✅ แก้เฉพาะฟังก์ชันนี้ ===================== */
 function renderMonthlySummary() {
     let monthly = {};
     let allStreaks = calculateStreaks();
@@ -221,14 +223,29 @@ function renderMonthlySummary() {
 
         session.players.forEach(p => {
             if (!monthly[key][p.name]) {
-                monthly[key][p.name] = { name: p.name, displayName: p.displayName || p.name, profit: 0, kill: 0, blind: 0, pay: 0, earn: 0, first: 0, second: 0 };
+                monthly[key][p.name] = { 
+                    name: p.name, 
+                    displayName: p.displayName || p.name, 
+                    profit: 0, 
+                    kill: 0, 
+                    blind: 0, 
+                    pay: 0, 
+                    earn: 0, 
+                    first: 0, 
+                    second: 0,
+                    play: 0   // ✅ เพิ่ม
+                };
             }
             let player = monthly[key][p.name];
+
+            player.play += 1; // ✅ นับจำนวนครั้งที่เล่น
+
             player.profit += p.profit || 0;
             player.kill += p.kill || 0;
             player.blind += p.blind || 0;
             player.pay += p.pay || 0;
             player.earn += p.earn || 0;
+
             if (p.rank == 1) player.first++;
             if (p.rank == 2) player.second++;
         });
@@ -238,32 +255,51 @@ function renderMonthlySummary() {
     Object.keys(monthly).forEach(month => {
         html += `<h3>📅 ${month}</h3>`;
         let arr = Object.values(monthly[month]).sort((a,b)=>b.profit - a.profit);
-        html += `<table><tr><th>#</th><th>ผู้เล่น</th><th>Kill</th><th>Buy-in</th><th>จ่าย</th><th>ได้</th><th>🥇</th><th>🥈</th><th>Streak</th><th>สุทธิ</th></tr>`;
-            arr.forEach((p, i) => {
-                let s = allStreaks[p.name];
-                let streakIcon = (s && s.count > 0) ? getIconHtml(s.lastStatus, s.count) : "";
-                let rowClass = (s && s.lastStatus === 'win' && s.count >= 2) ? 'class="winner-streak-glow"' : '';
 
-                html += `
-                <tr ${rowClass}>
-                    <td>${i+1}</td>
-                    <td><b>${p.displayName}</b></td>
-                    <td>${p.kill}</td>
-                    <td>${p.blind}</td>
-                    <td>${p.pay}</td>
-                    <td>${p.earn}</td>
-                    <td>${p.first}</td>
-                    <td>${p.second}</td>
-                    <td>${streakIcon}</td>
-                    <td class="${p.profit >= 0 ? 'profit-plus' : 'profit-minus'}">
-                        ${p.profit >= 0 ? '+' : ''}${p.profit}
-                    </td>
-                </tr>`;
-            });
+        html += `<table>
+        <tr>
+            <th>#</th>
+            <th>ผู้เล่น</th>
+            <th>Kill</th>
+            <th>Play</th> <!-- ✅ เพิ่ม -->
+            <th>Buy-in</th>
+            <th>จ่าย</th>
+            <th>ได้</th>
+            <th>🥇</th>
+            <th>🥈</th>
+            <th>W/L Streak</th>
+            <th>สุทธิ</th>
+        </tr>`;
+
+        arr.forEach((p, i) => {
+            let s = allStreaks[p.name];
+            let streakIcon = (s && s.count > 0) ? getIconHtml(s.lastStatus, s.count) : "";
+            let rowClass = (s && s.lastStatus === 'win' && s.count >= 2) ? 'class="winner-streak-glow"' : '';
+
+            html += `
+            <tr ${rowClass}>
+                <td>${i+1}</td>
+                <td><b>${p.displayName}</b></td>
+                <td>${p.kill}</td>
+                <td>${p.play}</td> <!-- ✅ แสดง -->
+                <td>${p.blind}</td>
+                <td>${p.pay}</td>
+                <td>${p.earn}</td>
+                <td>${p.first}</td>
+                <td>${p.second}</td>
+                <td>${streakIcon}</td>
+                <td class="${p.profit >= 0 ? 'profit-plus' : 'profit-minus'}">
+                    ${p.profit >= 0 ? '+' : ''}${p.profit}
+                </td>
+            </tr>`;
+        });
+
         html += `</table><br>`;
     });
+
     document.getElementById("monthlySummary").innerHTML = html;
 }
+/* ============================================================= */
 
 function renderHistory() {
     let html = "";
@@ -271,8 +307,8 @@ function renderHistory() {
 
     history.forEach((session, index) => {
         let date = new Date(session.date).toLocaleString("th-TH", { dateStyle: 'short', timeStyle: 'short' });
-        html += `<h3>🕒 ${date} <button class="btn-delete" onclick="deleteSession('${session.id}')">ลบ</button></h3>`;
-        html += `<table><tr><th>Player</th><th>Rank</th><th>Kill</th><th>Bounty</th><th>Blind</th><th>จ่าย</th><th>ได้</th><th>Streak</th><th>สุทธิ</th></tr>`;
+        html += `<h3>🕒 ${date} <button onclick="deleteSession('${session.id}')">ลบ</button></h3>`;
+        html += `<table><tr><th>Player</th><th>Rank</th><th>Kill</th><th>Bounty</th><th>Blind</th><th>จ่าย</th><th>ได้</th><th>W/L Streak</th><th>สุทธิ</th></tr>`;
 
         session.players.forEach(p => {
             let streakIcon = "";
@@ -283,10 +319,22 @@ function renderHistory() {
                     streakIcon = getIconHtml(s.lastStatus, s.count);
                 }
             }
-            html += `<tr><td>${p.displayName || p.name}</td><td>${p.rankText || p.rank}</td><td>${p.kill}</td><td>${p.bounty}</td><td>${p.blind}</td><td>${p.pay}</td><td>${p.earn}</td><td>${streakIcon}</td><td style="color:${p.profit>=0?'#00e676':'#ff5252'}">${p.profit>=0?'+':''}${p.profit}</td></tr>`;
+            html += `<tr>
+            <td>${p.displayName || p.name}</td>
+            <td>${p.rankText || p.rank}</td>
+            <td>${p.kill}</td>
+            <td>${p.bounty}</td>
+            <td>${p.blind}</td>
+            <td>${p.pay}</td>
+            <td>${p.earn}</td>
+            <td>${streakIcon}</td>
+            <td style="color:${p.profit>=0?'#00e676':'#ff5252'}">
+                ${p.profit>=0?'+':''}${p.profit}
+            </td></tr>`;
         });
         html += `</table><br>`;
     });
+
     document.getElementById("history").innerHTML = html;
 }
 
@@ -297,7 +345,11 @@ window.deleteSession = async function(id) {
     try { await deleteDoc(doc(db, "sessions", id)); alert("🗑 ลบเรียบร้อย"); } catch (err) { alert("❌ ลบไม่ได้"); }
 }
 
-function renderAll() { renderMonthlySummary(); renderHistory(); }
+function renderAll() { 
+    renderMonthlySummary(); 
+    renderHistory(); 
+}
+
 </script>
 </body>
 </html>
