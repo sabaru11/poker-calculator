@@ -120,10 +120,171 @@ button {
 }
 button:hover { background: #ff5252; color: #fff; }
 
+
+/* ===== Modal ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+}
+
+.modal-box {
+    width: 95%;
+    max-width: 650px;
+    max-height: 85%;
+    overflow: hidden;
+    background: #0d0d0d;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+/* Close button */
+.close-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+}
+.close-btn:hover {
+    color: #fff;
+}
+
+/* Summary */
+#modalSummary {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px;
+    color: #ccc;
+}
+
+/* Scroll list */
+.modal-list {
+    overflow-y: auto;
+    padding: 10px 16px;
+}
+
+/* Item */
+.session-card {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: 0.2s;
+}
+
+.session-card:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+/* Row layout */
+.session-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 6px;
+}
+
+.session-bottom {
+    grid-column: 1 / -1;      /* ดันให้กินทั้ง 2 คอลัมน์ */
+    text-align: center;       /* ตัวหนังสืออยู่กลาง */
+    font-size: 12px;
+    color: #aaa;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;      /* จัดกลางแนวนอน */
+    justify-content: center;
+
+    margin-top: 6px;
+}
+
+.session-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    font-size: 12px;
+}
+
+.session-grid div {
+    opacity: 0.85;
+}
+
+/* Profit */
+.profit-plus { color: #00e676; }
+.profit-minus { color: #ff5252; }
+
+.session-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.session-box {
+    background: rgba(255,255,255,0.03);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.session-left {
+    border-left: 3px solid #00bfff;
+}
+
+.session-right {
+    border-left: 3px solid #f1c40f;
+}
+
+.session-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    opacity: 0.8;
+}
 </style>
 </head>
 
 <body>
+
+    <!-- Popup  -->
+<div id="playerModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 id="modalTitle"></h2>
+            <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+
+        <div id="modalSummary"></div>
+
+        <div id="modalContent" class="modal-list"></div>
+    </div>
+</div>
+<!-- END Popup  -->
 
 <h1>Poker Leaderboard</h1>
 
@@ -212,6 +373,7 @@ function getIconHtml(status, count) {
     return `<small>💀 x${count}</small>`;
 }
 
+
 /* ===================== ✅ แก้เฉพาะฟังก์ชันนี้ ===================== */
 function renderMonthlySummary() {
     let monthly = {};
@@ -270,6 +432,7 @@ function renderMonthlySummary() {
             <th>🥈</th>
             <th>W/L Streak</th>
             <th>สุทธิ</th>
+            <th>รายละเอียด</th>
         </tr>`;
 
         arr.forEach((p, i) => {
@@ -291,6 +454,12 @@ function renderMonthlySummary() {
                 <td>${streakIcon}</td>
                 <td class="${p.profit >= 0 ? 'profit-plus' : 'profit-minus'}">
                     ${p.profit >= 0 ? '+' : ''}${p.profit}
+                </td>
+                <td>
+                <button style="cursor:pointer;"
+                    onclick="openPlayerReport('${p.name}')">
+                    ${p.displayName} || รายละเอียดTEST
+                </button>
                 </td>
             </tr>`;
         });
@@ -350,6 +519,144 @@ function renderAll() {
     renderMonthlySummary(); 
     renderHistory(); 
 }
+
+// Popup Total
+window.openPlayerReport = function(playerName) {
+
+    const BOUNTY_PER_KILL = 50;
+    const HEADME_VALUE = 50;
+
+    let playerSessions = history
+        .map(session => {
+
+            let player = session.players.find(p => p.name === playerName);
+            if (!player) return null;
+
+            // 👥 โต๊ะรวม
+            let totalPlayers = session.players.length;
+            let totalBuyin = session.players.reduce((sum, p) => sum + (p.blind || 0), 0);
+
+            // 🥇🥈 ดึงตัวจริง
+            let first = session.players.find(p => p.rank == 1);
+            let second = session.players.find(p => p.rank == 2);
+
+            // 🔥 คำนวณแบบ "แยกใหม่ทั้งหมด"
+            let headMe = (player.rank == 1) ? HEADME_VALUE : 0;
+            let killEarn = (player.kill || 0) * BOUNTY_PER_KILL;
+
+            // 💰 prize = เอา earn มาลบของแทรกออก
+            let prize = (player.earn || 0) - killEarn - headMe;
+
+            // 💸 profit จริง
+            let realProfit = prize + killEarn + headMe - (player.pay || 0);
+
+            // 🔥 IMPORTANT: แก้สรุปโต๊ะ (ห้ามใช้ earn เดิม)
+            let firstPrize = first
+                ? (first.earn || 0) - ((first.kill || 0) * BOUNTY_PER_KILL) - HEADME_VALUE
+                : 0;
+
+            let secondPrize = second
+                ? (second.earn || 0) - ((second.kill || 0) * BOUNTY_PER_KILL)
+                : 0;
+
+            return {
+                date: session.date,
+                ...player,
+
+                totalPlayers,
+                totalBuyin,
+
+                firstPrize,
+                secondPrize,
+
+                prize,
+                killEarn,
+                headMe,
+                realProfit
+            };
+        })
+        .filter(x => x !== null)
+        .sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+    let totalProfit = 0;
+    let html = "";
+
+    playerSessions.forEach(s => {
+
+        let date = new Date(s.date).toLocaleString("th-TH", {
+            dateStyle: 'short',
+            timeStyle: 'short'
+        });
+
+        totalProfit += s.realProfit || 0;
+
+        html += `
+        <div class="session-card">
+
+            <div class="session-top">
+                <div>🕒 ${date}</div>
+                <div class="${s.realProfit>=0?'profit-plus':'profit-minus'}">
+                    ${s.realProfit>=0?'+':''}${s.realProfit}
+                </div>
+            </div>
+
+            <div class="session-split">
+
+                <!-- 👤 ของเรา -->
+                <div class="session-box session-left">
+                    <div class="session-title">👤 ของเรา</div>
+
+                    🏆 Rank: ${s.rankText || s.rank}<br>
+                    🎲 Buy-in: ${s.blind}<br>
+                    💀 Kill: ${s.kill} ( ${s.bounty} )<br>
+                    💸 จ่าย: ${s.pay}<br>
+                </div>
+
+                <!-- 📊 สรุปโต๊ะ -->
+                <div class="session-box session-right">
+                    <div class="session-title">📊 สรุปโต๊ะ</div>
+
+                    👥 ผู้เล่น: ${s.totalPlayers} คน<br>
+                    🎲 Buy-in รวม: ${s.totalBuyin}<br><br>
+
+                    🥇 ที่1 : ${s.firstPrize}<br>
+                    🥈 ที่2 : ${s.secondPrize}<br><br>
+                                        
+                </div>
+
+                <div class="session-bottom">
+                    🏆 ได้รับ --> ${s.prize} || 💀จำนวนฆ่า: ${s.killEarn} || 🙂ค่าหัวตัวเอง: ${s.headMe}<br>
+                    💸 ${s.prize} + ${s.killEarn} + ${s.headMe} - ${s.pay} = ${s.realProfit>=0?'+':''}${s.realProfit}
+                </div>
+
+            </div>
+
+        </div>
+        `;
+    });
+
+    document.getElementById("modalSummary").innerHTML = `
+        💰 รวมทั้งหมด: 
+        <b class="${totalProfit>=0?'profit-plus':'profit-minus'}">
+            ${totalProfit>=0?'+':''}${totalProfit}
+        </b>
+    `;
+
+    document.getElementById("modalTitle").innerText = playerName;
+    document.getElementById("modalContent").innerHTML = html;
+    document.getElementById("playerModal").style.display = "flex";
+};
+
+window.closeModal = function() {
+    document.getElementById("playerModal").style.display = "none";
+};
+
+// ✅ คลิกพื้นหลังเพื่อปิด
+document.getElementById("playerModal").addEventListener("click", function(e) {
+    if (e.target.id === "playerModal") {
+        closeModal();
+    }
+});
 
 </script>
 </body>
