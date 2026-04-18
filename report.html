@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Player Report</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0d0d0d;
+    color: #fff;
+    padding: 20px;
+}
+
+h1 { margin-bottom: 10px; }
+
+.player-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.player-btn {
+    padding: 6px 12px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #1a1a1a;
+    transition: 0.2s;
+}
+
+.player-btn:hover {
+    background: #333;
+}
+
+.active {
+    background: #00e676;
+    color: #000;
+    font-weight: bold;
+}
+
+.box {
+    margin-left: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    padding: 8px;
+    border-bottom: 1px solid #222;
+}
+
+.plus { color: #00e676; }
+.minus { color: #ff5252; }
+</style>
+</head>
+
+<body>
+
+<h1>📊 รายงานรายคน</h1>
+
+<div class="player-list" id="playerList"></div>
+<div id="report"></div>
+
+<script>
+let history = JSON.parse(localStorage.getItem("poker_history")) || [];
+
+let players = {};
+
+// ✅ รวมข้อมูล
+history
+.sort((a,b)=> new Date(a.date) - new Date(b.date))
+.forEach((session, index) => {
+
+    session.players.forEach(p => {
+        if (!players[p.name]) players[p.name] = [];
+
+        players[p.name].push({
+            round: index + 1,
+            pay: p.pay || 0,
+            earn: p.earn || 0,
+            profit: p.profit || 0,
+            date: new Date(session.date).toLocaleString("th-TH")
+        });
+    });
+
+});
+
+// ✅ สร้างปุ่มรายชื่อ
+let playerListHtml = "";
+
+Object.keys(players).forEach(name => {
+    playerListHtml += `<div class="player-btn" onclick="showPlayer('${name}', this)">${name}</div>`;
+});
+
+document.getElementById("playerList").innerHTML = playerListHtml;
+
+// ✅ แสดงข้อมูล
+function showPlayer(name, el) {
+
+    // highlight ปุ่ม
+    document.querySelectorAll('.player-btn').forEach(btn => btn.classList.remove('active'));
+    el.classList.add('active');
+
+    let html = `<h2>${name}</h2>`;
+
+    players[name].forEach(r => {
+        html += `
+        <div class="box">
+            🕒 ${r.date}<br>
+            รอบ ${r.round} → 
+            ลง ${r.pay} | 
+            ได้ ${r.earn} | 
+            <span class="${r.profit>=0?'plus':'minus'}">
+                สุทธิ ${r.profit>=0?'+':''}${r.profit}
+            </span>
+        </div>
+        `;
+    });
+
+    document.getElementById("report").innerHTML = html;
+}
+
+// ✅ เปิดมาคนแรกโชว์เลย
+let firstPlayer = Object.keys(players)[0];
+if (firstPlayer) {
+    setTimeout(() => {
+        document.querySelector('.player-btn').click();
+    }, 100);
+}
+
+</script>
+
+</body>
+</html>
