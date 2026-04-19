@@ -456,10 +456,7 @@ function renderMonthlySummary() {
                     ${p.profit >= 0 ? '+' : ''}${p.profit}
                 </td>
                 <td>
-                <button style="cursor:pointer;"
-                    onclick="openPlayerReport('${p.name}')">
-                    ${p.displayName} || รายละเอียดTEST
-                </button>
+                <button style="cursor:pointer;"onclick="openPlayerReport('${p.name}')">รายละเอียด</button>
                 </td>
             </tr>`;
         });
@@ -469,6 +466,8 @@ function renderMonthlySummary() {
 
     document.getElementById("monthlySummary").innerHTML = html;
 }
+
+    // ${p.displayName} ||
 /* ============================================================= */
 
 function renderHistory() {
