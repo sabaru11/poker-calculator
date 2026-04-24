@@ -108,7 +108,7 @@ button {
     } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
     
     const firebaseConfig = {
-      apiKey: "AIzaSyCWAl-0DMtprO2UvUQZIXa6GqjWqq-9F38",
+      apiKey: "xxx",
       authDomain: "tc-poker.firebaseapp.com",
       projectId: "tc-poker",
       storageBucket: "tc-poker.firebasestorage.app",
@@ -117,18 +117,19 @@ button {
       measurementId: "G-3ZFVVQ2KJG"
     };
     
-    // init
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
     
-    // 👇 สำคัญมาก: ส่ง db ไป global
     window.db = db;
     window.fbAddDoc = addDoc;
     window.fbCollection = collection;
 </script>
     
 <script>
+
+// 🔥 เก็บ cache
+let playerCache = {};
 
 function setBlind(p, v) {
     document.getElementById("blind"+p).value = v;
@@ -139,33 +140,64 @@ function setBlind(p, v) {
 }
 
 function generatePlayers() {
+
     let n = +document.getElementById("players").value;
     let box = document.getElementById("playerInputs");
+
+    let oldData = {};
+
+    document.querySelectorAll(".player").forEach((p, index) => {
+        let i = index + 1;
+
+        oldData[i] = {
+            name: document.getElementById("name"+i)?.value || "",
+            kill: document.getElementById("kill"+i)?.value || 0,
+            blind: document.getElementById("blind"+i)?.value || 0,
+            rank: document.querySelector(`input[name="rank${i}"]:checked`)?.value || "0",
+            paid: document.getElementById("paid"+i)?.checked || false
+        };
+    });
+
     box.innerHTML = "";
 
     for (let i=1;i<=n;i++) {
+
+        let data = oldData[i] || {};
+
         box.innerHTML += `
         <div class="player" id="p${i}">
             <b>P${i}</b><br>
 
-            👤 <input type="text" id="name${i}" placeholder="ชื่อผู้เล่น"><br>
+            👤 <input type="text" id="name${i}" value="${data.name || ""}" placeholder="ชื่อผู้เล่น"><br>
 
-            🔫 <input type="number" id="kill${i}" value="0"><br>
+            🔫 <input type="number" id="kill${i}" value="${data.kill || 0}"><br>
 
             <div class="rank">
-                <label><input type="radio" name="rank${i}" value="0" checked> -</label>
-                <label><input type="radio" name="rank${i}" value="1"> 🥇</label>
-                <label><input type="radio" name="rank${i}" value="2"> 🥈</label>
+                <label><input type="radio" name="rank${i}" value="0" ${data.rank=="0"?"checked":""}> -</label>
+                <label><input type="radio" name="rank${i}" value="1" ${data.rank=="1"?"checked":""}> 🥇</label>
+                <label><input type="radio" name="rank${i}" value="2" ${data.rank=="2"?"checked":""}> 🥈</label>
             </div>
 
             <div>
-                <button class="blind-btn active" onclick="setBlind(${i},0)">0</button>
-                <button class="blind-btn" onclick="setBlind(${i},1)">1</button>
-                <button class="blind-btn" onclick="setBlind(${i},2)">2</button>
-                <button class="blind-btn" onclick="setBlind(${i},3)">3</button>
+                <button class="blind-btn ${(data.blind ?? 0)==0?"active":""}" onclick="setBlind(${i},0)">0</button>
+                <button class="blind-btn ${(data.blind ?? 0)==1?"active":""}" onclick="setBlind(${i},1)">1</button>
+                <button class="blind-btn ${(data.blind ?? 0)==2?"active":""}" onclick="setBlind(${i},2)">2</button>
+                <button class="blind-btn ${(data.blind ?? 0)==3?"active":""}" onclick="setBlind(${i},3)">3</button>
             </div>
 
-            <input type="hidden" id="blind${i}" value="0">
+            <input type="hidden" id="blind${i}" value="${data.blind || 0}">
+
+            <div style="margin-top:5px;">
+                <label>
+                    <input type="checkbox" id="paid${i}" 
+                        ${data.paid?"checked":""}
+                        onchange="updatePaidStatus(${i})"
+                    >
+                    <span id="paidText${i}" style="color:${data.paid ? '#00e676' : '#ff5252'};">
+                        ${data.paid ? 'จ่ายแล้ว' : 'ยังไม่จ่าย'}
+                    </span>
+                </label>
+            </div>
         </div>
         `;
     }
@@ -175,7 +207,6 @@ function calculate() {
     let n = +document.getElementById("players").value;
 
     let p1 = 0, p2 = 0;
-
     let names = [];
     let kills = [];
 
@@ -190,6 +221,8 @@ function calculate() {
 
     let chipTotal = 0;
 
+    let unpaidTotal = 0; // 🔥 เพิ่ม
+
     const mainPlayers = ["ตัง","กัน","อ้วน","ตอง","เอิท","อีน","ต้า","อิ้ง"];
 
     for (let i=1;i<=n;i++) {
@@ -199,14 +232,13 @@ function calculate() {
 
         let k = +document.getElementById("kill"+i).value || 0;
         let b = +document.getElementById("blind"+i).value || 0;
-        let r = document.querySelector(`input[name="rank${i}"]:checked`).value;
+        let r = document.querySelector(`input[name="rank${i}"]:checked`)?.value || "0";
 
         if (r == 1) p1 = i;
         if (r == 2) p2 = i;
 
         let nameLower = rawName.trim().toLowerCase();
 
-        // 🔥 ไม่พิมพ์ชื่อ = คนนอก
         let isGuest = rawName 
             ? !mainPlayers.includes(nameLower)
             : true;
@@ -285,26 +317,43 @@ function calculate() {
             rankText = "🥈";
         }
 
-        let profit = earn - totalPay;
+        let isPaid = document.getElementById("paid"+i)?.checked;
+
+        let profit = isPaid 
+            ? earn           // จ่ายแล้ว → ไม่ต้องหัก
+            : (earn - totalPay); // ยังไม่จ่าย → หัก
+
+        if (!isPaid) {
+            unpaidTotal += totalPay;
+        }
 
         html += `
         <tr style="background:${i%2==0 ? '#111' : '#1a1a1a'};">
-            <td>${name} ${isGuest ? "" : ""}</td>
+            <td>${name}</td>
             <td>${rankText}</td>
             <td>${kills[i-1]}</td>
             <td>${killMoney}</td>
             <td>${blindCount}</td>
             <td>${totalPay}</td>
-
+                
             <td style="padding: 10px;">
                 <div style="font-size:12px; color:#aaa; text-align:left;">
+
+
                 ${i === p1 ? `<span style="color:gold;">+ Rank1: ${first}</span><br>` : ""}
                 ${i === p2 ? `<span style="color:cyan;">+ Rank2: ${second}</span><br>` : ""}
                 ${kills[i-1] > 0 ? `<span style="color: #4FC244">+ Kill: ${killMoney}</span><br>` : ""}
                 ${i === p1 ? `<span style="color: #4FC244">+ Head Me: ${head}</span><br>` : ""}
-                <span style="color: #D16969;">- StartBuy/Buy-in: ${pay}</span><br>
+
+                                ${isPaid 
+                    ? `<span style="color:#00e676;">✔ จ่ายแล้ว</span><br>` 
+                    : `<span style="color:#ff5252;">✖ ยังไม่จ่าย</span><br>`
+                }
+
+                <span style="color: #D16969;">- Buy-in: ${pay}</span><br>
                 <span style="color: #D16969;">- Dealer: ${dealerPerPerson}</span><br>
-                ${chipFee > 0 ? `<span style="color: #D16969;">- Chip: ${chipFee} (คนนอก)</span>` : ""}
+                ${chipFee > 0 ? `<span style="color: #D16969;">- Chip: ${chipFee}</span>` : ""}
+
                 </div>
             </td>
             
@@ -323,7 +372,9 @@ function calculate() {
         🔥 รวมทั้งหมด: ${tableFee + bountyTotal}<br><br>
 
         🎲 Dealer + ${dealerBase} | + Buy-in : ${dealerBuyin} = (รวม ${dealerBase + dealerBuyin})<br>
-        🎲 Chip + ${chipTotal}
+        🎲 Chip + ${chipTotal}<br><br>
+
+        💸 ยอดค้างจ่าย: ${unpaidTotal}
         <br><br><br><br>
     </div>
     </table>
@@ -332,7 +383,6 @@ function calculate() {
     document.getElementById("output").innerHTML = html;
 }
 
-// 🔥 SAVE FIX แล้ว
 async function saveData() {
 
     let n = +document.getElementById("players").value;
@@ -349,7 +399,7 @@ async function saveData() {
         let name = document.getElementById("name"+i).value || ("P"+i);
         let k = +document.getElementById("kill"+i).value || 0;
         let b = +document.getElementById("blind"+i).value || 0;
-        let r = document.querySelector(`input[name="rank${i}"]:checked`).value;
+        let r = document.querySelector(`input[name="rank${i}"]:checked`)?.value || "0";
 
         if (r == 1) p1 = i;
         if (r == 2) p2 = i;
@@ -391,17 +441,14 @@ async function saveData() {
         let earn = killMoney;
 
         let rank = 0;
-        let rankText = "-";
 
         if (i === p1) {
             earn += first + head;
             rank = 1;
-            rankText = "🥇";
         } 
         else if (i === p2) {
             earn += second;
             rank = 2;
-            rankText = "🥈";
         }
 
         let profit = earn - totalPay;
@@ -410,7 +457,6 @@ async function saveData() {
             name: names[i-1].toLowerCase(),
             displayName: names[i-1],
             rank,
-            rankText,
             kill: kills[i-1],
             bounty: killMoney,
             blind: blindCount,
@@ -418,7 +464,8 @@ async function saveData() {
             chip: chipFee,
             isGuest,
             earn,
-            profit
+            profit,
+            paid: document.getElementById("paid"+i)?.checked || false
         });
     }
 
@@ -435,9 +482,20 @@ async function saveData() {
     }
 }
 
+function updatePaidStatus(i) {
+    let isPaid = document.getElementById("paid"+i).checked;
+    let text = document.getElementById("paidText"+i);
+
+    if (isPaid) {
+        text.innerHTML = "จ่ายแล้ว";
+        text.style.color = "#00e676";
+    } else {
+        text.innerHTML = "ยังไม่จ่าย";
+        text.style.color = "#ff5252";
+    }
+}
+
 generatePlayers();
-
-
 
 </script>
 
