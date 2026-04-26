@@ -7,58 +7,72 @@
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* background: radial-gradient(#050505); */
     background-color: #050505;
-    /* background: radial-gradient(circle, #1a1a1a 0%, #050505 100%); */
     color: #fff;
     text-align: center;
     margin: 0;
-    padding: 10px; /* ลด padding รอบนอก */
+    padding: 10px;
 }
 
 h1 { 
-    font-size: 1.8em; /* ลดขนาดหัวข้อลง */
+    font-size: 1.8em;
     letter-spacing: 1px;
     text-shadow: 0 0 10px rgba(255,255,255,0.2);
     margin-bottom: 20px;
 }
 
 h2 { font-size: 1.3em; margin-bottom: 10px; }
+/* h3 { margin-top: 25px; color: #aaa; font-weight: normal; } */
 
-/* 🏆 Container ของตาราง - ปรับให้แคบลงเล็กน้อย */
 .section { 
     margin: auto;
     max-width: 850px; 
     margin-bottom: 30px; 
 }
 
+/* 🌙 Dropdown Style */
+#monthSelector {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+    min-width: 180px;
+    margin-bottom: 20px;
+}
+#monthSelector:hover {
+    background: #252525;
+    border-color: rgba(255,255,255,0.3);
+}
+
 table { 
     width: 100%;
     margin: auto; 
     border-collapse: separate; 
-    border-spacing: 0 4px; /* ลดระยะห่างระหว่างแถวลงครึ่งหนึ่ง */
+    border-spacing: 0 4px;
 }
 
 th { 
     background: transparent;
     color: #888;
     text-transform: uppercase;
-    font-size: 11px; /* ฟอนต์หัวตารางเล็กลง */
+    font-size: 11px;
     letter-spacing: 1px;
-    padding: 10px 8px; /* ลด padding */
+    padding: 10px 8px;
 }
 
-/* แถวปกติ - ปรับให้เล็กลง */
 td { 
-    padding: 8px 10px; /* ลดความหนาของแถวลงอย่างชัดเจน */
+    padding: 8px 10px;
     background: rgba(255,255,255,0.04);
-    /* backdrop-filter: blur(5px); */
     border-top: 1px solid rgba(255,255,255,0.05);
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    font-size: 13px; /* ขนาดฟอนต์ข้อมูลเล็กลงให้ดูแพง */
+    font-size: 13px;
 }
 
-/* ทำให้ขอบตารางมน */
 td:first-child { border-left: 1px solid rgba(255,255,255,0.05); border-radius: 8px 0 0 8px; }
 td:last-child { border-right: 1px solid rgba(255,255,255,0.05); border-radius: 0 8px 8px 0; }
 
@@ -67,49 +81,16 @@ tr:hover td {
     transition: 0.2s;
 }
 
-/* 🔥 แสงไฟวิ่งรอบช่องสำหรับ Winner Streak >= 2 เท่านั้น */
 .winner-streak-glow {
     position: relative;
     background: rgba(255, 191, 0, 0.24) !important;
-    /* box-shadow: inset 0 0 15px rgba(255, 87, 34, 0.1); */
-    overflow: hidden;
 }
 
-/* .winner-streak-glow::after {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    border-radius: 8px;
-    padding: 2px; 
-    background: linear-gradient(90deg, transparent, #ff5722, #ffca28, #ff5722, transparent);
-    background-size: 200% 100%;
-    animation: moveGlow 10s linear infinite;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: destination-out;
-    mask-composite: exclude;
-} */
-
-@keyframes moveGlow {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
-/* สีของตัวเลขกำไร */
 .profit-plus { color: #00e676; font-weight: bold; text-shadow: 0 0 8px rgba(0,230,118,0.2); }
 .profit-minus { color: #ff5252; opacity: 0.8; }
 
-/* ไอคอน */
-/* .fire-red-anim { filter: drop-shadow(0 0 5px #ff5722); animation: scaleFire 0.6s infinite alternate; } */
-/* .fire-blue-anim { filter: drop-shadow(0 0 5px #00e5ff); animation: scaleFire 0.6s infinite alternate; } */
-
-@keyframes scaleFire {
-    from { transform: scale(1); }
-    to { transform: scale(1.15); }
-}
-
 button {
-    padding: 3px 8px; /* ปุ่มเล็กลง */
+    padding: 3px 8px;
     font-size: 11px;
     border: 1px solid rgba(255,255,255,0.1);
     background: rgba(255, 82, 82, 0.1);
@@ -120,8 +101,6 @@ button {
 }
 button:hover { background: #ff5252; color: #fff; }
 
-
-/* ===== Modal ===== */
 .modal {
     position: fixed;
     inset: 0;
@@ -146,7 +125,6 @@ button:hover { background: #ff5252; color: #fff; }
     flex-direction: column;
 }
 
-/* Header */
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -155,12 +133,8 @@ button:hover { background: #ff5252; color: #fff; }
     border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.modal-header h2 {
-    margin: 0;
-    font-size: 18px;
-}
+.modal-header h2 { margin: 0; font-size: 18px; }
 
-/* Close button */
 .close-btn {
     background: transparent;
     border: none;
@@ -168,11 +142,8 @@ button:hover { background: #ff5252; color: #fff; }
     font-size: 16px;
     cursor: pointer;
 }
-.close-btn:hover {
-    color: #fff;
-}
+.close-btn:hover { color: #fff; }
 
-/* Summary */
 #modalSummary {
     padding: 12px 16px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -180,13 +151,8 @@ button:hover { background: #ff5252; color: #fff; }
     color: #ccc;
 }
 
-/* Scroll list */
-.modal-list {
-    overflow-y: auto;
-    padding: 10px 16px;
-}
+.modal-list { overflow-y: auto; padding: 10px 16px; }
 
-/* Item */
 .session-card {
     padding: 10px 12px;
     margin-bottom: 8px;
@@ -196,11 +162,8 @@ button:hover { background: #ff5252; color: #fff; }
     transition: 0.2s;
 }
 
-.session-card:hover {
-    background: rgba(255,255,255,0.06);
-}
+.session-card:hover { background: rgba(255,255,255,0.06); }
 
-/* Row layout */
 .session-top {
     display: flex;
     justify-content: space-between;
@@ -210,33 +173,16 @@ button:hover { background: #ff5252; color: #fff; }
 }
 
 .session-bottom {
-    grid-column: 1 / -1;      /* ดันให้กินทั้ง 2 คอลัมน์ */
-    text-align: center;       /* ตัวหนังสืออยู่กลาง */
+    grid-column: 1 / -1;
+    text-align: center;
     font-size: 12px;
     color: #aaa;
-
     display: flex;
     flex-direction: column;
-    align-items: center;      /* จัดกลางแนวนอน */
+    align-items: center;
     justify-content: center;
-
     margin-top: 6px;
 }
-
-.session-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    font-size: 12px;
-}
-
-.session-grid div {
-    opacity: 0.85;
-}
-
-/* Profit */
-.profit-plus { color: #00e676; }
-.profit-minus { color: #ff5252; }
 
 .session-split {
     display: grid;
@@ -253,47 +199,41 @@ button:hover { background: #ff5252; color: #fff; }
     line-height: 1.6;
 }
 
-.session-left {
-    border-left: 3px solid #00bfff;
-}
+.session-left { border-left: 3px solid #00bfff; }
+.session-right { border-left: 3px solid #f1c40f; }
 
-.session-right {
-    border-left: 3px solid #f1c40f;
-}
-
-.session-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-    opacity: 0.8;
-}
+.session-title { font-weight: bold; margin-bottom: 5px; opacity: 0.8; }
 </style>
 </head>
 
 <body>
 
-    <!-- Popup  -->
 <div id="playerModal" class="modal">
     <div class="modal-box">
         <div class="modal-header">
             <h2 id="modalTitle"></h2>
             <button class="close-btn" onclick="closeModal()">✕</button>
         </div>
-
         <div id="modalSummary"></div>
-
         <div id="modalContent" class="modal-list"></div>
     </div>
 </div>
-<!-- END Popup  -->
 
 <h1>Poker Leaderboard</h1>
+
+<div class="section">
+    <label for="monthSelector" style="display: block; margin-bottom: 8px; color: #888; font-size: 12px;">📅 เลือกเดือนที่ต้องการดู</label>
+    <select id="monthSelector"></select>
+</div>
 
 <div class="section">
     <div id="monthlySummary"></div>
 </div>
 
 <div class="section">
-    <h3>📜 ประวัติการเล่น</h3> <div id="history"></div>
+    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 40px 0;">
+    <h3 id="historyTitle">📜 ประวัติการเล่น</h3>
+    <div id="history"></div>
 </div>
 
 <script type="module">
@@ -364,24 +304,22 @@ function calculateStreaks() {
 
 function getIconHtml(status, count) {
     if (count <= 0) return "";
-    if (status === "win") {
-        return `🔥 <small>x${count}</small>`;
-    }
-    if (status === "second") {
-        return `❄️ <small>x${count}</small>`;
-    }
+    if (status === "win") return `🔥 <small>x${count}</small>`;
+    if (status === "second") return `❄️ <small>x${count}</small>`;
     return `<small>💀 x${count}</small>`;
 }
 
+function getFormattedMonth(dateStr) {
+    let date = new Date(dateStr);
+    return (date.getMonth()+1).toString().padStart(2,'0') + "/" + date.getFullYear();
+}
 
-/* ===================== ✅ แก้เฉพาะฟังก์ชันนี้ ===================== */
 function renderMonthlySummary() {
     let monthly = {};
     let allStreaks = calculateStreaks();
 
     history.forEach(session => {
-        let date = new Date(session.date);
-        let key = (date.getMonth()+1).toString().padStart(2,'0') + "/" + date.getFullYear();
+        let key = getFormattedMonth(session.date);
         if (!monthly[key]) monthly[key] = {};
 
         session.players.forEach(p => {
@@ -396,35 +334,66 @@ function renderMonthlySummary() {
                     earn: 0, 
                     first: 0, 
                     second: 0,
-                    play: 0   // ✅ เพิ่ม
+                    play: 0 
                 };
             }
             let player = monthly[key][p.name];
-
-            player.play += 1; // ✅ นับจำนวนครั้งที่เล่น
-
+            player.play += 1;
             player.profit += p.profit || 0;
             player.kill += p.kill || 0;
             player.blind += p.blind || 0;
             player.pay += p.pay || 0;
             player.earn += p.earn || 0;
-
             if (p.rank == 1) player.first++;
             if (p.rank == 2) player.second++;
         });
     });
 
+    // --- Dropdown Management ---
+/* ===================== ส่วนการจัดการ Dropdown ใน renderMonthlySummary ===================== */
+
+    // 1. หาเดือนปัจจุบันในรูปแบบ "MM/YYYY"
+    const now = new Date();
+    const currentMonthKey = (now.getMonth() + 1).toString().padStart(2, '0') + "/" + now.getFullYear();
+
+    const selector = document.getElementById("monthSelector");
+    const currentSelection = selector.value;
+    const monthKeys = Object.keys(monthly).sort((a, b) => {
+        const [m1, y1] = a.split('/').map(Number);
+        const [m2, y2] = b.split('/').map(Number);
+        return y2 !== y1 ? y2 - y1 : m2 - m1;
+    });
+
+    if (selector.options.length !== monthKeys.length) {
+        selector.innerHTML = monthKeys.map(m => `<option value="${m}">${m}</option>`).join("");
+        
+        // ✅ เริ่มที่เดือนปัจจุบันก่อน ถ้าไม่มีข้อมูลเดือนปัจจุบัน ให้เอาเดือนล่าสุดที่มีแทน
+        if (!currentSelection && monthKeys.length > 0) {
+            if (monthKeys.includes(currentMonthKey)) {
+                selector.value = currentMonthKey;
+            } else {
+                selector.value = monthKeys[0];
+            }
+        } else if (currentSelection && monthKeys.includes(currentSelection)) {
+            selector.value = currentSelection;
+        }
+    }
+
+/* ===================================================================================== */
+
+    const selectedMonth = selector.value;
     let html = "";
-    Object.keys(monthly).forEach(month => {
-        html += `<h3>📅 ${month}</h3>`;
-        let arr = Object.values(monthly[month]).sort((a,b)=>b.profit - a.profit);
+    
+    if (selectedMonth && monthly[selectedMonth]) {
+        html += `<h3>📅 สรุปอันดับประจำเดือน ${selectedMonth}</h3>`;
+        let arr = Object.values(monthly[selectedMonth]).sort((a,b)=>b.profit - a.profit);
 
         html += `<table>
         <tr>
             <th>#</th>
             <th>ผู้เล่น</th>
             <th>Kill</th>
-            <th>Play</th> <!-- ✅ เพิ่ม -->
+            <th>Play</th>
             <th>Buy-in</th>
             <th>จ่าย</th>
             <th>ได้</th>
@@ -445,7 +414,7 @@ function renderMonthlySummary() {
                 <td>${i+1}</td>
                 <td><b>${p.displayName}</b></td>
                 <td>${p.kill}</td>
-                <td>${p.play}</td> <!-- ✅ แสดง -->
+                <td>${p.play}</td>
                 <td>${p.blind}</td>
                 <td>${p.pay}</td>
                 <td>${p.earn}</td>
@@ -460,21 +429,33 @@ function renderMonthlySummary() {
                 </td>
             </tr>`;
         });
-
         html += `</table><br>`;
-    });
+    }
 
     document.getElementById("monthlySummary").innerHTML = html;
+    
+    // หลังจาก Render Summary เสร็จ ให้สั่ง Render History ต่อเพื่อให้เดือนตรงกัน
+    renderHistoryByMonth(selectedMonth);
 }
 
-    // ${p.displayName} ||
-/* ============================================================= */
+// ผูก Event ให้เปลี่ยนทั้งหน้าเมื่อเลือก Dropdown
+document.getElementById("monthSelector").addEventListener("change", renderMonthlySummary);
 
-function renderHistory() {
+function renderHistoryByMonth(selectedMonth) {
     let html = "";
     let allStreaks = calculateStreaks();
+    
+    // Filter เฉพาะประวัติที่อยู่ในเดือนที่เลือก
+    let filteredHistory = history.filter(session => getFormattedMonth(session.date) === selectedMonth);
 
-    history.forEach((session, index) => {
+    document.getElementById("historyTitle").innerText = `📜 ประวัติการเล่นประจำเดือน ${selectedMonth}`;
+
+    if (filteredHistory.length === 0) {
+        document.getElementById("history").innerHTML = "<p style='color:#666; margin:20px;'>ไม่มีข้อมูลของเดือนนี้</p>";
+        return;
+    }
+
+    filteredHistory.forEach((session, index) => {
         let date = new Date(session.date).toLocaleString("th-TH", { dateStyle: 'short', timeStyle: 'short' });
         html += `<h3>🕒 ${date} <button onclick="deleteSession('${session.id}')">ลบ</button></h3>`;
         html += `<table><tr><th>Player</th><th>Rank</th><th>Kill</th><th>Bounty</th><th>Blind</th><th>จ่าย</th><th>ได้</th><th>W/L Streak</th><th>สุทธิ</th></tr>`;
@@ -482,6 +463,7 @@ function renderHistory() {
         session.players.forEach(p => {
             let streakIcon = "";
             let s = allStreaks[p.name];
+            // แสดง Streak เฉพาะรายการล่าสุดของเดือนนั้นๆ (index 0 ในผลลัพธ์ที่เรียงแล้ว)
             if (index === 0 && s && s.count > 0) {
                 let currentStatus = (p.rank == 1) ? "win" : (p.rank == 2) ? "second" : "lose";
                 if (s.lastStatus === currentStatus) {
@@ -503,7 +485,6 @@ function renderHistory() {
         });
         html += `</table><br>`;
     });
-
     document.getElementById("history").innerHTML = html;
 }
 
@@ -516,58 +497,39 @@ window.deleteSession = async function(id) {
 
 function renderAll() { 
     renderMonthlySummary(); 
-    renderHistory(); 
+    // renderHistory จะถูกเรียกพ่วงใน renderMonthlySummary แล้ว
 }
 
-// Popup Total
 window.openPlayerReport = function(playerName) {
-
     const BOUNTY_PER_KILL = 50;
     const HEADME_VALUE = 50;
 
     let playerSessions = history
         .map(session => {
-
             let player = session.players.find(p => p.name === playerName);
             if (!player) return null;
 
-            // 👥 โต๊ะรวม
             let totalPlayers = session.players.length;
             let totalBuyin = session.players.reduce((sum, p) => sum + (p.blind || 0), 0);
 
-            // 🥇🥈 ดึงตัวจริง
             let first = session.players.find(p => p.rank == 1);
             let second = session.players.find(p => p.rank == 2);
 
-            // 🔥 คำนวณแบบ "แยกใหม่ทั้งหมด"
             let headMe = (player.rank == 1) ? HEADME_VALUE : 0;
             let killEarn = (player.kill || 0) * BOUNTY_PER_KILL;
-
-            // 💰 prize = เอา earn มาลบของแทรกออก
             let prize = (player.earn || 0) - killEarn - headMe;
-
-            // 💸 profit จริง
             let realProfit = prize + killEarn + headMe - (player.pay || 0);
 
-            // 🔥 IMPORTANT: แก้สรุปโต๊ะ (ห้ามใช้ earn เดิม)
-            let firstPrize = first
-                ? (first.earn || 0) - ((first.kill || 0) * BOUNTY_PER_KILL) - HEADME_VALUE
-                : 0;
-
-            let secondPrize = second
-                ? (second.earn || 0) - ((second.kill || 0) * BOUNTY_PER_KILL)
-                : 0;
+            let firstPrize = first ? (first.earn || 0) - ((first.kill || 0) * BOUNTY_PER_KILL) - HEADME_VALUE : 0;
+            let secondPrize = second ? (second.earn || 0) - ((second.kill || 0) * BOUNTY_PER_KILL) : 0;
 
             return {
                 date: session.date,
                 ...player,
-
                 totalPlayers,
                 totalBuyin,
-
                 firstPrize,
                 secondPrize,
-
                 prize,
                 killEarn,
                 headMe,
@@ -581,61 +543,43 @@ window.openPlayerReport = function(playerName) {
     let html = "";
 
     playerSessions.forEach(s => {
-
-        let date = new Date(s.date).toLocaleString("th-TH", {
-            dateStyle: 'short',
-            timeStyle: 'short'
-        });
-
+        let date = new Date(s.date).toLocaleString("th-TH", { dateStyle: 'short', timeStyle: 'short' });
         totalProfit += s.realProfit || 0;
 
         html += `
         <div class="session-card">
-
             <div class="session-top">
                 <div>🕒 ${date}</div>
                 <div class="${s.realProfit>=0?'profit-plus':'profit-minus'}">
                     ${s.realProfit>=0?'+':''}${s.realProfit}
                 </div>
             </div>
-
             <div class="session-split">
-
-                <!-- 👤 ของเรา -->
                 <div class="session-box session-left">
                     <div class="session-title">👤 ของเรา</div>
-
                     🏆 Rank: ${s.rankText || s.rank}<br>
                     🎲 Buy-in: ${s.blind}<br>
                     💀 Kill: ${s.kill} ( ${s.bounty} )<br>
                     💸 จ่าย: ${s.pay}<br>
                 </div>
-
-                <!-- 📊 สรุปโต๊ะ -->
                 <div class="session-box session-right">
                     <div class="session-title">📊 สรุปโต๊ะ</div>
-
                     👥 ผู้เล่น: ${s.totalPlayers} คน<br>
                     🎲 Buy-in รวม: ${s.totalBuyin}<br><br>
-
                     🥇 ที่1 : ${s.firstPrize}<br>
                     🥈 ที่2 : ${s.secondPrize}<br><br>
-                                        
                 </div>
-
                 <div class="session-bottom">
                     🏆 ได้รับ --> ${s.prize} || 💀ค่าหัวที่ได้รับ: ${s.killEarn} || 🙂ค่าหัวตัวเอง: ${s.headMe}<br>
                     💸 ${s.prize} + ${s.killEarn} + ${s.headMe} - ${s.pay} = ${s.realProfit>=0?'+':''}${s.realProfit}
                 </div>
-
             </div>
-
         </div>
         `;
     });
 
     document.getElementById("modalSummary").innerHTML = `
-        💰 รวมทั้งหมด: 
+        💰 รวมทั้งหมด (ทุกเดือน): 
         <b class="${totalProfit>=0?'profit-plus':'profit-minus'}">
             ${totalProfit>=0?'+':''}${totalProfit}
         </b>
@@ -650,11 +594,8 @@ window.closeModal = function() {
     document.getElementById("playerModal").style.display = "none";
 };
 
-// ✅ คลิกพื้นหลังเพื่อปิด
 document.getElementById("playerModal").addEventListener("click", function(e) {
-    if (e.target.id === "playerModal") {
-        closeModal();
-    }
+    if (e.target.id === "playerModal") closeModal();
 });
 
 </script>
