@@ -93,6 +93,7 @@ button {
     <div id="playerInputs"></div>
 
     <button onclick="calculate()">คำนวณ</button>
+    <button onclick="toggleDeal()" id="dealBtn">🤝 Deal: OFF</button>
     <button onclick="saveData()">💾 Save</button>
 
     <div class="result" id="output"></div>
@@ -203,6 +204,26 @@ function generatePlayers() {
     }
 }
 
+let dealMode = false;
+
+function toggleDeal() {
+    dealMode = !dealMode;
+
+    const btn = document.getElementById("dealBtn");
+
+    if (dealMode) {
+        btn.innerHTML = "🤝 Deal: ON";
+        btn.style.background = "#00c853";
+        btn.style.color = "#000";
+    } else {
+        btn.innerHTML = "🤝 Deal: OFF";
+        btn.style.background = "#333";
+        btn.style.color = "#fff";
+    }
+
+    calculate();
+}
+
 function calculate() {
     let n = +document.getElementById("players").value;
 
@@ -259,8 +280,17 @@ function calculate() {
         return;
     }
 
-    let first = Math.ceil(prizePool * 0.7);
-    let second = prizePool - first;
+    let first;
+    let second;
+
+    if (dealMode) {
+        first = Math.floor(prizePool * 0.5);
+        second = prizePool - first;
+    } else {
+        first = Math.ceil(prizePool * 0.7);
+        second = prizePool - first;
+    }
+
     let head = 50;
 
     let html = `<h3>🏆 สรุปผล</h3>`;
@@ -415,13 +445,23 @@ async function saveData() {
         return;
     }
 
-    let first = Math.ceil(prizePool * 0.7);
-    let second = prizePool - first;
+    let first;
+    let second;
+
+    if (dealMode) {
+        first = Math.floor(prizePool * 0.5);
+        second = prizePool - first;
+    } else {
+        first = Math.ceil(prizePool * 0.7);
+        second = prizePool - first;
+    }
+
     let head = 50;
 
     let session = {
         date: new Date().toISOString(),
         key: "tc",
+        deal: dealMode,
         players: []
     };
 
